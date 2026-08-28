@@ -28,7 +28,13 @@ Follow-ups from the 0.2.0 web-layer review, in rough priority order.
    no longer depends on it (the show branch is keyed on `isOpen`), but
    stabilizing the identity in `useOverlayLifecycle` stops redundant effect
    churn.
-7. **Explicit web escape hatches (the next capability wave).** Per-instance
+7. **Hidden-tab presentation gate.** `onHostShown` is delivered on a
+   `requestAnimationFrame`, which never fires in a hidden tab — an overlay
+   opened there waits in `mounting` (invisible) until the tab becomes
+   visible. Longstanding and mostly benign (nothing renders in a hidden tab
+   anyway), but a visibilitychange-aware fallback would make the entry gate
+   deterministic for background automation.
+8. **Explicit web escape hatches (the next capability wave).** Per-instance
    `web` props delivering browser-delegated dismissal, Interest-Invoker
    input, and broader CSS-anchor use — the `approach-d` branch holds the
    right API surface and type tests; the `approach-b` branch holds the right

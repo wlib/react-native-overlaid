@@ -61,6 +61,15 @@ kernel remaining the single source of truth. Native behavior is unchanged.
   platform surface after an accepted browser-initiated close, and a forced
   close landing before presentation completes no longer strands the overlay
   invisible-but-open.
+- Dialog/drawer/sheet close animations no longer vanish instantly on
+  Chromium. Two causes: the close-first exit mode closed the `<dialog>` host
+  whose only transitions were discrete (`overlay`/`display`) — Chromium
+  completes discrete-only transitions instantly — so modal hosts now always
+  stay mounted through the exit (close-first remains for anchored overlays,
+  whose reveal animates on the popover element itself); and the exit
+  accounting's two-frame "no transition started" fallback raced Chromium's
+  asynchronous `transitionrun` delivery — it now consults
+  `element.getAnimations()` before completing.
 
 ## 0.1.0
 

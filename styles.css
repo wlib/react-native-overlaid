@@ -262,12 +262,16 @@
     transition-duration: 0ms;
   }
 
-  /* Close-first exits (Chromium: overlay is unsupported elsewhere). The
-   * chrome calls hidePopover()/close() at dismissal start and these
-   * discrete transitions keep the element — dialog ::backdrop included —
-   * rendered in the top layer until the exit reveal finishes. Engines
-   * without `overlay` never match, and there the chrome keeps the platform
-   * surface shown through the whole 'dismissing' phase instead. */
+  /* Close-first exits (Chromium: overlay is unsupported elsewhere) for
+   * ANCHORED overlays only. The chrome calls hidePopover() at dismissal
+   * start and these discrete transitions keep the element rendered in the
+   * top layer until the exit reveal finishes — this works because opacity
+   * animates on the SAME element, and Chromium completes a transition of
+   * only discrete properties (overlay/display) instantly. That is also why
+   * the dialog host has no close-first rule: its exit reveal runs on the
+   * surface child, so the host stays natively open through 'dismissing'
+   * (mounted-through-exit) on every engine. Engines without `overlay`
+   * never match this block and keep mounted-through-exit everywhere. */
   @supports (overlay: auto) and (transition-behavior: allow-discrete) {
     [data-overlaid-kind='popover'][data-overlaid-part='surface']:not(
         [data-overlaid-styling='none']
@@ -276,10 +280,6 @@
         [data-overlaid-styling='none']
       ) {
       transition-property: opacity, display, overlay;
-      transition-behavior: allow-discrete;
-    }
-    dialog[data-overlaid-modal]:not([data-overlaid-styling='none']) {
-      transition-property: overlay, display;
       transition-behavior: allow-discrete;
     }
   }

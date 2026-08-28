@@ -118,6 +118,44 @@ describe('useExitTransition (web)', () => {
     }
   })
 
+  it('defers to a live animation the events have not announced yet', () => {
+    // Chromium delivers transitionrun asynchronously after the style recalc
+    // that starts the transition; under fast frame timing the second frame
+    // can beat that delivery. getAnimations() is the race-free truth.
+    jest.useFakeTimers()
+    try {
+      const screen = render(<Harness />)
+      const panel = mockContext.refs.panel.current as HTMLElement
+      panel.getAnimations = () => [{} as Animation]
+
+      act(() => jest.advanceTimersByTime(200))
+      expect(mockExitComplete).not.toHaveBeenCalled()
+
+      // The lagging events arrive and drain the accounting normally.
+      panel.dispatchEvent(transitionEvent('transitionrun'))
+      panel.dispatchEvent(transitionEvent('transitionend'))
+      expect(mockExitComplete).toHaveBeenCalledTimes(1)
+      screen.unmount()
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('still completes after two frames when getAnimations is empty', () => {
+    jest.useFakeTimers()
+    try {
+      const screen = render(<Harness />)
+      const panel = mockContext.refs.panel.current as HTMLElement
+      panel.getAnimations = () => []
+
+      act(() => jest.advanceTimersByTime(40))
+      expect(mockExitComplete).toHaveBeenCalledTimes(1)
+      screen.unmount()
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
   it('holds the two-frame completion once a transition has begun', () => {
     jest.useFakeTimers()
     try {

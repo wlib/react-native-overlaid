@@ -19,6 +19,8 @@ import {
   View,
 } from 'react-native'
 import { OverlayHost, type OverlayInsets } from '../src'
+import { deepestAttachedDescendant } from '../src/core/layerHost'
+import { useLayerHost } from '../src/react/LayerHostContext'
 import { AutoPressProvider } from './autoPress'
 import { scenarios, type Scenario } from './scenarios'
 import { GalleryInsetsProvider } from './scenarios/insets'
@@ -84,6 +86,35 @@ function detectTrueSheet(): boolean {
 }
 const HAS_TRUE_SHEET = detectTrueSheet()
 
+/**
+ * Video tooling's dismissal driver: `dismissAfter` (ms) in the route payload
+ * escapes the layer stack through the kernel's own routing — the same path a
+ * user's Escape/back takes — so capture scripts can film each family's real
+ * exit animation with no injected input. Repeats every 900 ms until the walk
+ * reports 'unhandled', unwinding stacked scenarios one animated layer at a
+ * time.
+ */
+function AutoDismissDriver({
+  delayMs,
+  seq,
+}: {
+  delayMs: number | null
+  seq: number
+}) {
+  const host = useLayerHost()
+  useEffect(() => {
+    if (delayMs === null) return
+    let timer: ReturnType<typeof setTimeout>
+    const fire = () => {
+      const outcome = deepestAttachedDescendant(host).dispatchEscape()
+      if (outcome !== 'unhandled') timer = setTimeout(fire, 900)
+    }
+    timer = setTimeout(fire, delayMs)
+    return () => clearTimeout(timer)
+  }, [delayMs, host, seq])
+  return null
+}
+
 type Family = Scenario['family']
 const FAMILIES: readonly Family[] = [
   'Dialog',
@@ -106,6 +137,8 @@ export function OverlayGallery({
   const [filter, setFilter] = useState<Family | 'All'>('All')
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const [autoPress, setAutoPress] = useState(false)
+  const [dismissAfter, setDismissAfter] = useState<number | null>(null)
+  const [routeSeq, setRouteSeq] = useState(0)
 
   useEffect(() => {
     const apply = (url: string | null) => {
@@ -133,7 +166,12 @@ export function OverlayGallery({
         .then((response) => response.json())
         .then(
           (
-            route: { nonce?: string; key?: string; autopress?: boolean } | null,
+            route: {
+              nonce?: string
+              key?: string
+              autopress?: boolean
+              dismissAfter?: number
+            } | null,
           ) => {
             if (cancelled || !route || typeof route.nonce !== 'string') return
             if (route.nonce === lastNonce) return
@@ -142,6 +180,12 @@ export function OverlayGallery({
             const exists = scenarios.some((s) => s.key === key)
             setActiveKey(exists ? key : null)
             setAutoPress(exists && route.autopress === true)
+            setDismissAfter(
+              exists && typeof route.dismissAfter === 'number'
+                ? route.dismissAfter
+                : null,
+            )
+            setRouteSeq((seq) => seq + 1)
           },
         )
         .catch(() => {})
@@ -166,6 +210,7 @@ export function OverlayGallery({
 
   return (
     <OverlayHost>
+      <AutoDismissDriver delayMs={dismissAfter} seq={routeSeq} />
       <GalleryInsetsProvider value={insets}>
         <View
           style={[

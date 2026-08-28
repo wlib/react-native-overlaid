@@ -103,13 +103,14 @@ duration) + 100ms`, so consumer CSS can lengthen an exit
 real completion, notably TrueSheet, still reports it directly.
 
 Where the browser supports discrete transitions and the CSS `overlay`
-property (Chromium), web exits are additionally close-first: the platform
-surface (`hidePopover()`/`dialog.close()`) closes at dismissal start and
-the stylesheet's `allow-discrete`/`overlay` transition keeps it painted in
-the top layer through the exit — so a dying popover stops intercepting
-pointer events and dialog focus restoration happens at close start.
-Elsewhere the surface stays platform-open through `dismissing`, exactly as
-before.
+property (Chromium), anchored-overlay exits are additionally close-first:
+`hidePopover()` runs at dismissal start and the stylesheet's
+`allow-discrete`/`overlay` transition keeps the panel painted in the top
+layer through the exit — so a dying popover stops intercepting pointer
+events. Dialog/drawer/sheet hosts never close first: their exit reveal
+animates on the surface child, and Chromium completes a discrete-only
+`overlay`/`display` transition instantly, so the `<dialog>` host stays
+platform-open through `dismissing` on every engine.
 
 Reopening during exit reuses the mounted platform surface and carries already
 satisfied presentation gates. Consumers should render from their `open` state;

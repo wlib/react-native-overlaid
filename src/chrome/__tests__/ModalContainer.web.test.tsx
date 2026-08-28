@@ -96,7 +96,12 @@ it('guards backdrop clicks and re-shows a browser-forced close the kernel refuse
   expect(dialog.open).toBe(true)
 })
 
-it('close-first exit: closes the platform dialog at dismissal start, keeps it rendered', () => {
+it('stays open through dismissing even with the close-first capabilities', () => {
+  // The dialog host has NO close-first mode: its exit reveal animates on
+  // the surface child, and Chromium completes a discrete-only
+  // overlay/display transition instantly — a close-first host would
+  // vanish before the surface's exit reveal ever ran. Regression for a
+  // 0.2.0 field report of instant dialog/drawer/sheet closes.
   setWebCapabilityOverrides({
     discreteTransitions: true,
     overlayProperty: true,
@@ -110,9 +115,6 @@ it('close-first exit: closes the platform dialog at dismissal start, keeps it re
   const dialog = screen.container.querySelector('dialog') as HTMLDialogElement
   expect(dialog.open).toBe(true)
 
-  // Dismissal start: the platform surface closes (the stylesheet's
-  // allow-discrete/overlay transition keeps it painted) while the chrome
-  // stays mounted until the exit accounting drains.
   mockContext.state = {
     phase: 'dismissing',
     isMounted: true,
@@ -124,23 +126,47 @@ it('close-first exit: closes the platform dialog at dismissal start, keeps it re
       <button type="button">inside</button>
     </ModalContainer>,
   )
-  expect(dialog.open).toBe(false)
-  expect(dialog.isConnected).toBe(true)
-  // The self-inflicted close must not report a dismissal.
+  // Mounted-through-exit: the platform surface only closes at unmount.
+  expect(dialog.open).toBe(true)
   expect(mockRequestDismiss).not.toHaveBeenCalled()
 
-  // Reopen-mid-exit restores the platform surface.
+  screen.unmount()
   mockContext.state = presented
+  setWebCapabilityOverrides(null)
+})
+
+it('re-delivers onHostShown when a re-run cancels the pending frame', () => {
+  // The show branch schedules onHostShown on a frame; any effect re-run
+  // before that frame cancels it. While the entry is still gated on the
+  // signal (mounting, dialog already open), the effect must re-schedule
+  // instead of stranding the overlay invisible-but-open.
+  const presented = mockContext.state
+  mockContext.state = {
+    phase: 'mounting',
+    isMounted: true,
+    isOpen: true,
+    isPresented: false,
+  }
+  const screen = render(
+    <ModalContainer>
+      <button type="button">inside</button>
+    </ModalContainer>,
+  )
+  expect(mockHostShown).toHaveBeenCalledTimes(1)
+
+  // Signals identity churn re-runs the effect while still mounting; the
+  // dialog is already open, so only the re-arm branch can deliver again.
+  mockHostShown.mockClear()
+  mockContext.signals = { onHostShown: mockHostShown }
   screen.rerender(
     <ModalContainer>
       <button type="button">inside</button>
     </ModalContainer>,
   )
-  expect(dialog.open).toBe(true)
+  expect(mockHostShown.mock.calls.length).toBeGreaterThanOrEqual(1)
 
   screen.unmount()
   mockContext.state = presented
-  setWebCapabilityOverrides(null)
 })
 
 it('without the capabilities the dialog stays open through dismissing', () => {

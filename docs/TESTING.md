@@ -94,6 +94,39 @@ Their native open states are captured interactively (e.g. driving the
 simulator) and merged into `docs/screenshots/ios/manifest.json`; the
 automated run keeps whatever manifest entries already exist.
 
+## Video pipeline
+
+Motion is documented separately from stills — the clips in
+[`docs/videos`](videos/README.md) cover every story on web and every
+auto-pressable scenario on iOS: entry reveals, kernel-routed Escape exits,
+sheet detent drags, displacement, stack unwinding, and the tooltip's
+delayed-then-instant hover intent (requires `ffmpeg` on PATH):
+
+```sh
+npm run storybook:build && npx http-server storybook-static -p 6006
+npm run videos:web               # every story -> docs/videos/web/*.webm + .webp
+npm run videos:ios               # every auto scenario -> docs/videos/ios/*.mp4 + .webp (booted sim + example app + Metro)
+npm run videos:index             # regenerates docs/videos/README.md
+```
+
+Web clips are one continuous take per story — its named states (from the
+shared `scripts/lib/webStates.mjs` table the screenshot pipeline also
+drives) followed by Escape rounds; blocking/veto stories deliberately end
+open, since the refusal is the demo. iOS clips are `simctl io recordVideo`
+captures; dismissals ride the route payload's `dismissAfter`, which escapes
+the layer stack through the kernel (see `AutoDismissDriver` in
+`gallery/OverlayGallery.tsx`), so exits are the real animated paths and
+stacked scenarios unwind one layer at a time. Simulator recordings are
+variable-frame-rate — frames are only emitted on screen changes, so static
+holds compress and clips end at the last visual change.
+
+The animated WebP files exist because GitHub's markup sanitizer strips
+every inline form of committed video (verified empirically: `<video>`
+tags with relative, raw, media, and release-asset URLs are all removed;
+only drag-and-drop `user-attachments` uploads may embed, and those have
+no API). A committed animated WebP referenced as an image plays inline,
+so the gallery leads with those and links each to its full-quality clip.
+
 ## Reviewing the captures
 
 The gallery page is only as good as the eyes on it. The capture set is

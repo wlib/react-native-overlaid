@@ -80,7 +80,21 @@ export function useExitTransition(): void {
       frame = requestAnimationFrame(() => {
         frame = requestAnimationFrame(() => {
           frame = null
-          if (!sawTransition) complete()
+          if (sawTransition) return
+          // Chromium dispatches transitionrun asynchronously after the
+          // style recalc that starts the transition, so under fast frame
+          // timing this second frame can win that race. The element is
+          // the truth the events lag behind: a live transition/animation
+          // means the exit is running and its end/cancel will drain the
+          // accounting once delivered.
+          if (typeof element.getAnimations === 'function') {
+            try {
+              if (element.getAnimations().length > 0) return
+            } catch {
+              // Detached element; fall through to completion.
+            }
+          }
+          complete()
         })
       })
     }

@@ -302,6 +302,8 @@ auto-pressable buttons) and may be absent from automated runs.
 <p>
 <img src="web/overlays-popover--basic--closed.png" alt="overlays-popover--basic--closed.png" width="320">
 <img src="web/overlays-popover--basic--open.png" alt="overlays-popover--basic--open.png" width="320">
+<img src="web/overlays-popover--basic--closed--caps-none.png" alt="overlays-popover--basic--closed--caps-none.png" width="320">
+<img src="web/overlays-popover--basic--open--caps-none.png" alt="overlays-popover--basic--open--caps-none.png" width="320">
 </p>
 
 **iOS**
@@ -336,6 +338,8 @@ auto-pressable buttons) and may be absent from automated runs.
 <p>
 <img src="web/overlays-popover--outside-press-dismisses--closed.png" alt="overlays-popover--outside-press-dismisses--closed.png" width="320">
 <img src="web/overlays-popover--outside-press-dismisses--open.png" alt="overlays-popover--outside-press-dismisses--open.png" width="320">
+<img src="web/overlays-popover--outside-press-dismisses--closed--caps-none.png" alt="overlays-popover--outside-press-dismisses--closed--caps-none.png" width="320">
+<img src="web/overlays-popover--outside-press-dismisses--open--caps-none.png" alt="overlays-popover--outside-press-dismisses--open--caps-none.png" width="320">
 </p>
 
 **iOS**
@@ -441,6 +445,8 @@ auto-pressable buttons) and may be absent from automated runs.
 <p>
 <img src="web/overlays-tooltip--hover-and-focus--closed.png" alt="overlays-tooltip--hover-and-focus--closed.png" width="320">
 <img src="web/overlays-tooltip--hover-and-focus--open.png" alt="overlays-tooltip--hover-and-focus--open.png" width="320">
+<img src="web/overlays-tooltip--hover-and-focus--closed--caps-none.png" alt="overlays-tooltip--hover-and-focus--closed--caps-none.png" width="320">
+<img src="web/overlays-tooltip--hover-and-focus--open--caps-none.png" alt="overlays-tooltip--hover-and-focus--open--caps-none.png" width="320">
 </p>
 
 **iOS**
@@ -480,6 +486,15 @@ auto-pressable buttons) and may be absent from automated runs.
 <p>
 <img src="ios/tooltip-hint-vs-auto--closed.png" alt="tooltip-hint-vs-auto--closed.png" width="200">
 <img src="ios/tooltip-hint-vs-auto--popover-plus-tooltip.png" alt="tooltip-hint-vs-auto--popover-plus-tooltip.png" width="200">
+</p>
+
+### Overlays/Tooltip — Hover intent: first hover waits, warm hover is instant
+
+**Web**
+
+<p>
+<img src="web/overlays-tooltip--delayed-then-instant--closed.png" alt="overlays-tooltip--delayed-then-instant--closed.png" width="320">
+<img src="web/overlays-tooltip--delayed-then-instant--open.png" alt="overlays-tooltip--delayed-then-instant--open.png" width="320">
 </p>
 
 ### Overlays/Tooltip — With Boundary
@@ -524,6 +539,9 @@ auto-pressable buttons) and may be absent from automated runs.
 <img src="web/overlays-stacking-nesting--popover-inside-dialog--closed.png" alt="overlays-stacking-nesting--popover-inside-dialog--closed.png" width="320">
 <img src="web/overlays-stacking-nesting--popover-inside-dialog--dialog-open.png" alt="overlays-stacking-nesting--popover-inside-dialog--dialog-open.png" width="320">
 <img src="web/overlays-stacking-nesting--popover-inside-dialog--popover-in-dialog.png" alt="overlays-stacking-nesting--popover-inside-dialog--popover-in-dialog.png" width="320">
+<img src="web/overlays-stacking-nesting--popover-inside-dialog--closed--caps-none.png" alt="overlays-stacking-nesting--popover-inside-dialog--closed--caps-none.png" width="320">
+<img src="web/overlays-stacking-nesting--popover-inside-dialog--dialog-open--caps-none.png" alt="overlays-stacking-nesting--popover-inside-dialog--dialog-open--caps-none.png" width="320">
+<img src="web/overlays-stacking-nesting--popover-inside-dialog--popover-in-dialog--caps-none.png" alt="overlays-stacking-nesting--popover-inside-dialog--popover-in-dialog--caps-none.png" width="320">
 </p>
 
 **iOS**

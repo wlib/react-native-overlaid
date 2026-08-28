@@ -175,19 +175,23 @@ Divergences from Floating UI: no continuous shift near viewport corners,
 try-fallback flips are invisible to `data-overlaid-placement`, and
 `-start`/`-end` spans map physically (LTR).
 
-## Close-first exits (Chromium)
+## Close-first exits (Chromium, anchored overlays only)
 
 Inside `@supports (overlay: auto) and (transition-behavior: allow-discrete)`
 the motion layer extends `transition-property` on popover/tooltip panels
-(`opacity, display, overlay`) and dialog hosts (`overlay, display`) with
-`transition-behavior: allow-discrete`. Where that matches, the chrome closes
-the platform surface (`hidePopover()`/`dialog.close()`) at dismissal start
-and these transitions keep it — `::backdrop` included — painted in the top
-layer through the exit reveal. If you replace a panel's
-`transition-property` wholesale in such a browser, include `display` and
-`overlay` or the exit will vanish at dismissal start. Engines without
-`overlay` never match the block and keep the surface platform-open through
-the whole `dismissing` phase.
+(`opacity, display, overlay`) with `transition-behavior: allow-discrete`.
+Where that matches, the chrome calls `hidePopover()` at dismissal start and
+these transitions keep the panel painted in the top layer through the exit
+reveal. This works only because `opacity` animates on the **same** element:
+Chromium completes a transition of only discrete properties instantly. That
+is also why dialog/drawer/sheet hosts have no close-first mode — their exit
+reveal runs on the surface _child_, so the `<dialog>` host stays natively
+open through `dismissing` (mounted-through-exit) on every engine. If you
+replace a panel's `transition-property` wholesale in such a browser, keep
+`display` and `overlay` alongside at least one animatable property, or the
+exit will vanish at dismissal start. Engines without `overlay` never match
+the block and keep every surface platform-open through the whole
+`dismissing` phase.
 
 ## `unstyled`
 

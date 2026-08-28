@@ -8,7 +8,6 @@ import { flattenToCss } from '../react/flattenStyle'
 import { useOverlayContext } from '../react/overlayContext'
 import { stylingAttributes, useOverlayStyling } from '../react/overlayStyling'
 import type { ModalContainerProps } from './ModalContainer'
-import { hasWebCapability } from './webCapabilities'
 
 export type { ModalContainerProps }
 
@@ -30,17 +29,13 @@ export function ModalContainer({
   // modal top-layer behavior even when only their visual scrim is disabled.
   const usesModalTopLayer = hasBackdrop || kind === 'sheet'
   const backdropStyle = backdrop ? flattenToCss(backdrop.style) : undefined
-  // Chromium-gated close-first exit (§7.3.2): close() at dismissal start
-  // (its close algorithm also restores focus then, not at unmount) while
-  // the stylesheet's allow-discrete/overlay transition keeps the dialog —
-  // ::backdrop included — rendered through the exit. Elsewhere the dialog
-  // stays open through 'dismissing': the only cross-browser way to keep
-  // top-layer membership. The 'close' event this fires is absorbed by the
-  // handler's !state.isOpen guard.
-  const closeFirstExit =
-    hasWebCapability('discreteTransitions') &&
-    hasWebCapability('overlayProperty')
-  const platformHidden = closeFirstExit ? !state.isOpen : !state.isMounted
+  // The dialog host stays natively open through 'dismissing' on every
+  // engine (mounted-through-exit): the host itself animates no property on
+  // exit — the reveal runs on the surface child — and Chromium completes a
+  // discrete-only overlay/display transition instantly, so a close-first
+  // host would vanish before the surface's exit reveal ever ran. Anchored
+  // overlays keep close-first exits (AnchoredContainer): their reveal is
+  // on the popover element itself, which holds the discrete transition.
 
   useLayoutEffect(() => {
     const dialog = dialogRef.current
@@ -51,15 +46,19 @@ export function ModalContainer({
       // Show is keyed on isOpen, not mount state: an accepted browser-
       // forced close leaves the host natively closed through the exit
       // phase, so a reopen mid-exit (dismissing -> presented, isMounted
-      // never flipping) must re-show — and a forced close landing in the
-      // 'mounting' window re-schedules the onHostShown frame instead of
-      // stranding the entry. During 'dismissing' (mounted, not open)
-      // neither branch runs in mounted-through-exit mode: a kernel-driven
-      // close keeps the host open through its exit and closes at unmount.
+      // never flipping) must re-show. During 'dismissing' (mounted, not
+      // open) neither branch runs: a kernel-driven close keeps the host
+      // open through its exit and closes at unmount.
       if (state.isOpen && !dialog.open) {
         showDialog(dialog, usesModalTopLayer)
         frame = requestAnimationFrame(signals.onHostShown)
-      } else if (platformHidden && dialog.open) {
+      } else if (state.isOpen && !state.isPresented) {
+        // A re-run of this effect between show and its frame cancels the
+        // pending onHostShown delivery; while the entry is still gated on
+        // it (mounting), re-schedule. The gate is idempotent and
+        // stale-guarded, so a duplicate delivery is a no-op.
+        frame = requestAnimationFrame(signals.onHostShown)
+      } else if (!state.isMounted && dialog.open) {
         dialog.close()
       }
     } catch {
@@ -69,7 +68,13 @@ export function ModalContainer({
     return () => {
       if (frame !== undefined) cancelAnimationFrame(frame)
     }
-  }, [platformHidden, signals, state.isOpen, usesModalTopLayer])
+  }, [
+    signals,
+    state.isMounted,
+    state.isOpen,
+    state.isPresented,
+    usesModalTopLayer,
+  ])
 
   // The dialog close algorithm restores pre-show focus only while the node
   // remains connected. React removal alone can leave focus on <body>.

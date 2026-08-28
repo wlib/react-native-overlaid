@@ -279,6 +279,20 @@
       "file": "overlays-popover--close-on-scroll--dismissed-after-scroll.png"
     },
     {
+      "story": "overlays-popover--pinned-to-anchor",
+      "title": "Overlays/Popover",
+      "name": "closeOnScroll={false} — pinned (CSS anchor engine where capable)",
+      "state": "closed",
+      "file": "overlays-popover--pinned-to-anchor--closed.png"
+    },
+    {
+      "story": "overlays-popover--exit-duration-token",
+      "title": "Overlays/Popover",
+      "name": "CSS token — --overlaid-duration-exit lengthens unmount",
+      "state": "closed",
+      "file": "overlays-popover--exit-duration-token--closed.png"
+    },
+    {
       "story": "overlays-popover--scroll-inside-panel-does-not-dismiss",
       "title": "Overlays/Popover",
       "name": "closeOnScroll exemption — scrolling inside the panel",
@@ -447,6 +461,13 @@
       "file": "overlays-stacking-nesting--click-inside-dialog-spares-it--popover-dismissed-dialog-spared.png"
     },
     {
+      "story": "overlays-stacking-nesting--browser-forced-close-in-nested-stack",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Browser-forced dialog close spares the drawer beneath it",
+      "state": "closed",
+      "file": "overlays-stacking-nesting--browser-forced-close-in-nested-stack--closed.png"
+    },
+    {
       "story": "overlays-stacking-nesting--dialog-above-drawer",
       "title": "Overlays/Stacking & Nesting",
       "name": "Dialog Above Drawer",
@@ -559,6 +580,27 @@
       "file": "overlays-tooltip--hint-does-not-displace-auto--popover-plus-tooltip.png"
     },
     {
+      "story": "overlays-tooltip--delayed-then-instant",
+      "title": "Overlays/Tooltip",
+      "name": "Hover intent: first hover waits, warm hover is instant",
+      "state": "closed",
+      "file": "overlays-tooltip--delayed-then-instant--closed.png"
+    },
+    {
+      "story": "overlays-tooltip--delayed-then-instant",
+      "title": "Overlays/Tooltip",
+      "name": "Hover intent: first hover waits, warm hover is instant",
+      "state": "open",
+      "file": "overlays-tooltip--delayed-then-instant--open.png"
+    },
+    {
+      "story": "overlays-tooltip--delay-token",
+      "title": "Overlays/Tooltip",
+      "name": "CSS token — --overlaid-tooltip-delay themes the intent delay",
+      "state": "closed",
+      "file": "overlays-tooltip--delay-token--closed.png"
+    },
+    {
       "story": "overlays-tooltip--with-boundary",
       "title": "Overlays/Tooltip",
       "name": "With Boundary",
@@ -585,6 +627,78 @@
       "name": "Render Prop Trigger",
       "state": "open",
       "file": "overlays-tooltip--render-prop-trigger--open.png"
+    },
+    {
+      "story": "overlays-popover--basic",
+      "title": "Overlays/Popover",
+      "name": "Basic",
+      "state": "closed",
+      "file": "overlays-popover--basic--closed--caps-none.png",
+      "caps": "none"
+    },
+    {
+      "story": "overlays-popover--basic",
+      "title": "Overlays/Popover",
+      "name": "Basic",
+      "state": "open",
+      "file": "overlays-popover--basic--open--caps-none.png",
+      "caps": "none"
+    },
+    {
+      "story": "overlays-popover--outside-press-dismisses",
+      "title": "Overlays/Popover",
+      "name": "Outside Press Dismisses",
+      "state": "closed",
+      "file": "overlays-popover--outside-press-dismisses--closed--caps-none.png",
+      "caps": "none"
+    },
+    {
+      "story": "overlays-popover--outside-press-dismisses",
+      "title": "Overlays/Popover",
+      "name": "Outside Press Dismisses",
+      "state": "open",
+      "file": "overlays-popover--outside-press-dismisses--open--caps-none.png",
+      "caps": "none"
+    },
+    {
+      "story": "overlays-stacking-nesting--popover-inside-dialog",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Popover Inside Dialog",
+      "state": "closed",
+      "file": "overlays-stacking-nesting--popover-inside-dialog--closed--caps-none.png",
+      "caps": "none"
+    },
+    {
+      "story": "overlays-stacking-nesting--popover-inside-dialog",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Popover Inside Dialog",
+      "state": "dialog-open",
+      "file": "overlays-stacking-nesting--popover-inside-dialog--dialog-open--caps-none.png",
+      "caps": "none"
+    },
+    {
+      "story": "overlays-stacking-nesting--popover-inside-dialog",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Popover Inside Dialog",
+      "state": "popover-in-dialog",
+      "file": "overlays-stacking-nesting--popover-inside-dialog--popover-in-dialog--caps-none.png",
+      "caps": "none"
+    },
+    {
+      "story": "overlays-tooltip--hover-and-focus",
+      "title": "Overlays/Tooltip",
+      "name": "Hover And Focus",
+      "state": "closed",
+      "file": "overlays-tooltip--hover-and-focus--closed--caps-none.png",
+      "caps": "none"
+    },
+    {
+      "story": "overlays-tooltip--hover-and-focus",
+      "title": "Overlays/Tooltip",
+      "name": "Hover And Focus",
+      "state": "open",
+      "file": "overlays-tooltip--hover-and-focus--open--caps-none.png",
+      "caps": "none"
     }
   ]
 }

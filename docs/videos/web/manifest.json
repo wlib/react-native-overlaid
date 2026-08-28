@@ -1,0 +1,257 @@
+{
+  "platform": "web",
+  "clips": [
+    {
+      "story": "overlays-dialog--basic",
+      "title": "Overlays/Dialog",
+      "name": "Basic",
+      "webm": "overlays-dialog--basic.webm",
+      "webp": "overlays-dialog--basic.webp"
+    },
+    {
+      "story": "overlays-dialog--non-dismissable",
+      "title": "Overlays/Dialog",
+      "name": "Non Dismissable",
+      "webm": "overlays-dialog--non-dismissable.webm",
+      "webp": "overlays-dialog--non-dismissable.webp"
+    },
+    {
+      "story": "overlays-dialog--scrollable-content",
+      "title": "Overlays/Dialog",
+      "name": "Scrollable Content",
+      "webm": "overlays-dialog--scrollable-content.webm",
+      "webp": "overlays-dialog--scrollable-content.webp"
+    },
+    {
+      "story": "overlays-dialog--styled-surface-and-backdrop",
+      "title": "Overlays/Dialog",
+      "name": "Styled Surface And Backdrop",
+      "webm": "overlays-dialog--styled-surface-and-backdrop.webm",
+      "webp": "overlays-dialog--styled-surface-and-backdrop.webp"
+    },
+    {
+      "story": "overlays-dialog--compound-parts",
+      "title": "Overlays/Dialog",
+      "name": "Compound Parts",
+      "webm": "overlays-dialog--compound-parts.webm",
+      "webp": "overlays-dialog--compound-parts.webp"
+    },
+    {
+      "story": "overlays-drawer--right-side",
+      "title": "Overlays/Drawer",
+      "name": "Right Side",
+      "webm": "overlays-drawer--right-side.webm",
+      "webp": "overlays-drawer--right-side.webp"
+    },
+    {
+      "story": "overlays-drawer--left-side",
+      "title": "Overlays/Drawer",
+      "name": "Left Side",
+      "webm": "overlays-drawer--left-side.webm",
+      "webp": "overlays-drawer--left-side.webp"
+    },
+    {
+      "story": "overlays-drawer--fixed-width-scrolling",
+      "title": "Overlays/Drawer",
+      "name": "Fixed Width Scrolling",
+      "webm": "overlays-drawer--fixed-width-scrolling.webm",
+      "webp": "overlays-drawer--fixed-width-scrolling.webp"
+    },
+    {
+      "story": "overlays-drawer--non-dismissable",
+      "title": "Overlays/Drawer",
+      "name": "Non Dismissable",
+      "webm": "overlays-drawer--non-dismissable.webm",
+      "webp": "overlays-drawer--non-dismissable.webp"
+    },
+    {
+      "story": "overlays-drawer--no-backdrop",
+      "title": "Overlays/Drawer",
+      "name": "No Backdrop",
+      "webm": "overlays-drawer--no-backdrop.webm",
+      "webp": "overlays-drawer--no-backdrop.webp"
+    },
+    {
+      "story": "overlays-drawer--styled-surface",
+      "title": "Overlays/Drawer",
+      "name": "Styled Surface",
+      "webm": "overlays-drawer--styled-surface.webm",
+      "webp": "overlays-drawer--styled-surface.webp"
+    },
+    {
+      "story": "overlays-popover--basic",
+      "title": "Overlays/Popover",
+      "name": "Basic",
+      "webm": "overlays-popover--basic.webm",
+      "webp": "overlays-popover--basic.webp"
+    },
+    {
+      "story": "overlays-popover--displaces-other-popover",
+      "title": "Overlays/Popover",
+      "name": "Opening one popover closes the other (auto displaces auto)",
+      "webm": "overlays-popover--displaces-other-popover.webm",
+      "webp": "overlays-popover--displaces-other-popover.webp"
+    },
+    {
+      "story": "overlays-popover--outside-press-dismisses",
+      "title": "Overlays/Popover",
+      "name": "Outside Press Dismisses",
+      "webm": "overlays-popover--outside-press-dismisses.webm",
+      "webp": "overlays-popover--outside-press-dismisses.webp"
+    },
+    {
+      "story": "overlays-popover--placements",
+      "title": "Overlays/Popover",
+      "name": "Placements",
+      "webm": "overlays-popover--placements.webm",
+      "webp": "overlays-popover--placements.webp"
+    },
+    {
+      "story": "overlays-popover--non-dismissable",
+      "title": "Overlays/Popover",
+      "name": "Non Dismissable",
+      "webm": "overlays-popover--non-dismissable.webm",
+      "webp": "overlays-popover--non-dismissable.webp"
+    },
+    {
+      "story": "overlays-popover--close-on-scroll",
+      "title": "Overlays/Popover",
+      "name": "closeOnScroll (default) — page scroll dismisses",
+      "webm": "overlays-popover--close-on-scroll.webm",
+      "webp": "overlays-popover--close-on-scroll.webp"
+    },
+    {
+      "story": "overlays-popover--scroll-inside-panel-does-not-dismiss",
+      "title": "Overlays/Popover",
+      "name": "closeOnScroll exemption — scrolling inside the panel",
+      "webm": "overlays-popover--scroll-inside-panel-does-not-dismiss.webm",
+      "webp": "overlays-popover--scroll-inside-panel-does-not-dismiss.webp"
+    },
+    {
+      "story": "overlays-popover--displacement-vs-non-dismissable",
+      "title": "Overlays/Popover",
+      "name": "Displacement force-closes dismissable=false; veto survives",
+      "webm": "overlays-popover--displacement-vs-non-dismissable.webm",
+      "webp": "overlays-popover--displacement-vs-non-dismissable.webp"
+    },
+    {
+      "story": "overlays-sheet--content-sized",
+      "title": "Overlays/Sheet",
+      "name": "Content Sized",
+      "webm": "overlays-sheet--content-sized.webm",
+      "webp": "overlays-sheet--content-sized.webp"
+    },
+    {
+      "story": "overlays-sheet--three-detents",
+      "title": "Overlays/Sheet",
+      "name": "Three Detents",
+      "webm": "overlays-sheet--three-detents.webm",
+      "webp": "overlays-sheet--three-detents.webp"
+    },
+    {
+      "story": "overlays-sheet--scrolling-content",
+      "title": "Overlays/Sheet",
+      "name": "Scroll inside vs drag-to-dismiss arbitration",
+      "webm": "overlays-sheet--scrolling-content.webm",
+      "webp": "overlays-sheet--scrolling-content.webp"
+    },
+    {
+      "story": "overlays-sheet--non-dismissable",
+      "title": "Overlays/Sheet",
+      "name": "Non Dismissable",
+      "webm": "overlays-sheet--non-dismissable.webm",
+      "webp": "overlays-sheet--non-dismissable.webp"
+    },
+    {
+      "story": "overlays-sheet--no-scrim",
+      "title": "Overlays/Sheet",
+      "name": "No Scrim",
+      "webm": "overlays-sheet--no-scrim.webm",
+      "webp": "overlays-sheet--no-scrim.webp"
+    },
+    {
+      "story": "overlays-sheet--styled-and-narrow",
+      "title": "Overlays/Sheet",
+      "name": "Styled And Narrow",
+      "webm": "overlays-sheet--styled-and-narrow.webm",
+      "webp": "overlays-sheet--styled-and-narrow.webp"
+    },
+    {
+      "story": "overlays-stacking-nesting--popover-inside-dialog",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Popover Inside Dialog",
+      "webm": "overlays-stacking-nesting--popover-inside-dialog.webm",
+      "webp": "overlays-stacking-nesting--popover-inside-dialog.webp"
+    },
+    {
+      "story": "overlays-stacking-nesting--click-inside-dialog-spares-it",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Press inside the dialog closes only the popover",
+      "webm": "overlays-stacking-nesting--click-inside-dialog-spares-it.webm",
+      "webp": "overlays-stacking-nesting--click-inside-dialog-spares-it.webp"
+    },
+    {
+      "story": "overlays-stacking-nesting--dialog-above-drawer",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Dialog Above Drawer",
+      "webm": "overlays-stacking-nesting--dialog-above-drawer.webm",
+      "webp": "overlays-stacking-nesting--dialog-above-drawer.webp"
+    },
+    {
+      "story": "overlays-stacking-nesting--tooltip-inside-sheet",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Tooltip Inside Sheet",
+      "webm": "overlays-stacking-nesting--tooltip-inside-sheet.webm",
+      "webp": "overlays-stacking-nesting--tooltip-inside-sheet.webp"
+    },
+    {
+      "story": "overlays-stacking-nesting--kitchen-sink-three-deep",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Kitchen sink: dialog → popover → tooltip",
+      "webm": "overlays-stacking-nesting--kitchen-sink-three-deep.webm",
+      "webp": "overlays-stacking-nesting--kitchen-sink-three-deep.webp"
+    },
+    {
+      "story": "overlays-tooltip--hover-and-focus",
+      "title": "Overlays/Tooltip",
+      "name": "Hover And Focus",
+      "webm": "overlays-tooltip--hover-and-focus.webm",
+      "webp": "overlays-tooltip--hover-and-focus.webp"
+    },
+    {
+      "story": "overlays-tooltip--escape-dismisses-hint",
+      "title": "Overlays/Tooltip",
+      "name": "Escape dismisses (WCAG 1.4.13)",
+      "webm": "overlays-tooltip--escape-dismisses-hint.webm",
+      "webp": "overlays-tooltip--escape-dismisses-hint.webp"
+    },
+    {
+      "story": "overlays-tooltip--hint-does-not-displace-auto",
+      "title": "Overlays/Tooltip",
+      "name": "Hovering a tooltip never closes an open popover",
+      "webm": "overlays-tooltip--hint-does-not-displace-auto.webm",
+      "webp": "overlays-tooltip--hint-does-not-displace-auto.webp"
+    },
+    {
+      "story": "overlays-tooltip--delayed-then-instant",
+      "title": "Overlays/Tooltip",
+      "name": "Hover intent: first hover waits, warm hover is instant",
+      "webm": "overlays-tooltip--delayed-then-instant.webm",
+      "webp": "overlays-tooltip--delayed-then-instant.webp"
+    },
+    {
+      "story": "overlays-tooltip--with-boundary",
+      "title": "Overlays/Tooltip",
+      "name": "With Boundary",
+      "webm": "overlays-tooltip--with-boundary.webm",
+      "webp": "overlays-tooltip--with-boundary.webp"
+    },
+    {
+      "story": "overlays-tooltip--render-prop-trigger",
+      "title": "Overlays/Tooltip",
+      "name": "Render Prop Trigger",
+      "webm": "overlays-tooltip--render-prop-trigger.webm",
+      "webp": "overlays-tooltip--render-prop-trigger.webp"
+    }
+  ]
+}

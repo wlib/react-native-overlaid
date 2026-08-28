@@ -6,6 +6,11 @@ one lifecycle and stacking policy while rendering with platform-appropriate
 chrome: `<dialog>` and the Popover API on web, RN `Modal` and TrueSheet on
 native.
 
+Every variant is captured in every state on both platforms in the
+[still gallery](docs/screenshots/README.md), and the transitions —
+entry/exit reveals, sheet detent drags, stack unwinding, tooltip hover
+intent — in the [motion gallery](docs/videos/README.md).
+
 ## Install
 
 Install the package with the peers used by your target. Web still installs

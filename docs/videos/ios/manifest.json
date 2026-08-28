@@ -1,0 +1,111 @@
+{
+  "platform": "ios",
+  "bundleId": "dev.overlaid.example",
+  "clips": [
+    {
+      "scenario": "dialog-basic",
+      "mp4": "dialog-basic.mp4",
+      "webp": "dialog-basic.webp"
+    },
+    {
+      "scenario": "dialog-non-dismissable",
+      "mp4": "dialog-non-dismissable.mp4",
+      "webp": "dialog-non-dismissable.webp"
+    },
+    {
+      "scenario": "dialog-scrollable",
+      "mp4": "dialog-scrollable.mp4",
+      "webp": "dialog-scrollable.webp"
+    },
+    {
+      "scenario": "dialog-styled",
+      "mp4": "dialog-styled.mp4",
+      "webp": "dialog-styled.webp"
+    },
+    {
+      "scenario": "dialog-compound",
+      "mp4": "dialog-compound.mp4",
+      "webp": "dialog-compound.webp"
+    },
+    {
+      "scenario": "sheet-content-sized",
+      "mp4": "sheet-content-sized.mp4",
+      "webp": "sheet-content-sized.webp"
+    },
+    {
+      "scenario": "sheet-three-detents",
+      "mp4": "sheet-three-detents.mp4",
+      "webp": "sheet-three-detents.webp"
+    },
+    {
+      "scenario": "sheet-scrolling",
+      "mp4": "sheet-scrolling.mp4",
+      "webp": "sheet-scrolling.webp"
+    },
+    {
+      "scenario": "sheet-non-dismissable",
+      "mp4": "sheet-non-dismissable.mp4",
+      "webp": "sheet-non-dismissable.webp"
+    },
+    {
+      "scenario": "sheet-no-scrim",
+      "mp4": "sheet-no-scrim.mp4",
+      "webp": "sheet-no-scrim.webp"
+    },
+    {
+      "scenario": "sheet-styled",
+      "mp4": "sheet-styled.mp4",
+      "webp": "sheet-styled.webp"
+    },
+    {
+      "scenario": "drawer-right",
+      "mp4": "drawer-right.mp4",
+      "webp": "drawer-right.webp"
+    },
+    {
+      "scenario": "drawer-left",
+      "mp4": "drawer-left.mp4",
+      "webp": "drawer-left.webp"
+    },
+    {
+      "scenario": "drawer-fixed-width",
+      "mp4": "drawer-fixed-width.mp4",
+      "webp": "drawer-fixed-width.webp"
+    },
+    {
+      "scenario": "drawer-non-dismissable",
+      "mp4": "drawer-non-dismissable.mp4",
+      "webp": "drawer-non-dismissable.webp"
+    },
+    {
+      "scenario": "drawer-no-backdrop",
+      "mp4": "drawer-no-backdrop.mp4",
+      "webp": "drawer-no-backdrop.webp"
+    },
+    {
+      "scenario": "drawer-styled",
+      "mp4": "drawer-styled.mp4",
+      "webp": "drawer-styled.webp"
+    },
+    {
+      "scenario": "stacking-popover-in-dialog",
+      "mp4": "stacking-popover-in-dialog.mp4",
+      "webp": "stacking-popover-in-dialog.webp"
+    },
+    {
+      "scenario": "stacking-dialog-above-drawer",
+      "mp4": "stacking-dialog-above-drawer.mp4",
+      "webp": "stacking-dialog-above-drawer.webp"
+    },
+    {
+      "scenario": "stacking-tooltip-in-sheet",
+      "mp4": "stacking-tooltip-in-sheet.mp4",
+      "webp": "stacking-tooltip-in-sheet.webp"
+    },
+    {
+      "scenario": "stacking-kitchen-sink",
+      "mp4": "stacking-kitchen-sink.mp4",
+      "webp": "stacking-kitchen-sink.webp"
+    }
+  ]
+}
