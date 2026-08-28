@@ -22,6 +22,8 @@ export type DrawerPanelProps = {
   accessibilityLabel?: string
   className?: string
   style?: CrossPlatformStyle
+  /** Web-only styling marker, retained on the platform pair. */
+  unstyled?: boolean | undefined
   children: ReactNode
 }
 

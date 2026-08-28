@@ -55,6 +55,7 @@ const STORY_TO_SCENARIO = {
   'overlays-tooltip--hover-and-focus': 'tooltip-hover-focus',
   'overlays-tooltip--escape-dismisses-hint': 'tooltip-escape',
   'overlays-tooltip--hint-does-not-displace-auto': 'tooltip-hint-vs-auto',
+  'overlays-tooltip--delayed-then-instant': 'tooltip-timing',
   'overlays-tooltip--with-boundary': 'tooltip-boundary',
   'overlays-tooltip--render-prop-trigger': 'tooltip-render-prop',
 }

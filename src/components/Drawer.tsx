@@ -135,6 +135,7 @@ function DrawerContent({
         {...(panelLabel !== undefined
           ? { accessibilityLabel: panelLabel }
           : {})}
+        unstyled={unstyled}
         style={[
           unstyled ? undefined : defaults.drawerSurface,
           style as StyleProp<ViewStyle>,

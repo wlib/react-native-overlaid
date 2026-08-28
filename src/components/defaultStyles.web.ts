@@ -1,33 +1,25 @@
 import type { TextStyle, ViewStyle } from 'react-native'
 
-export const dialogSurface = {
-  backgroundColor: '#ffffff',
-  borderRadius: 16,
-  padding: 32,
-  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-} as ViewStyle
+/**
+ * WEB pair of defaultStyles. The surface visuals live in styles.css
+ * (`@layer overlaid.defaults`, keyed off data-overlaid-kind/-part and
+ * guarded by :not([data-overlaid-unstyled])), so a consumer's ordinary
+ * stylesheet rule beats them without specificity wars. These empty shims
+ * keep the shared component code compiling unchanged; `unstyled` reaches
+ * the chrome as the data-overlaid-unstyled attribute instead.
+ *
+ * The Text part styles below stay in JS on purpose: react-native-web's
+ * Text resets paint `color`/`font` directly on the element, so a CSS rule
+ * on the surface cannot cascade into them.
+ */
 
-export const drawerSurface = {
-  backgroundColor: '#ffffff',
-  padding: 16,
-  boxShadow: '0 0 24px rgba(0, 0, 0, 0.15)',
-} as ViewStyle
+export const dialogSurface = {} as ViewStyle
 
-export const popoverSurface = {
-  backgroundColor: '#ffffff',
-  borderRadius: 12,
-  padding: 16,
-  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.18)',
-} as ViewStyle
+export const drawerSurface = {} as ViewStyle
 
-export const tooltipSurface = {
-  maxWidth: 256,
-  backgroundColor: '#111827',
-  borderRadius: 8,
-  paddingHorizontal: 12,
-  paddingVertical: 8,
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-} as ViewStyle
+export const popoverSurface = {} as ViewStyle
+
+export const tooltipSurface = {} as ViewStyle
 
 export const tooltipText: TextStyle = {
   fontSize: 12,

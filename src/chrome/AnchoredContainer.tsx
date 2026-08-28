@@ -34,6 +34,8 @@ export type AnchoredContainerProps = {
   style?: CrossPlatformStyle
   role?: OverlayRole
   accessibilityLabel?: string
+  /** Web-only styling marker, retained on the platform pair. */
+  unstyled?: boolean | undefined
   contextBridge?: ContextBridge
 }
 

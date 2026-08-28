@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react'
 import { AnchoredContainer } from '../AnchoredContainer'
+import { setWebCapabilityOverrides } from '../webCapabilities'
 
 const mockHostShown = jest.fn()
 const mockLayoutReady = jest.fn()
@@ -18,7 +19,12 @@ const mockContext = {
   },
   actions: { requestDismiss: jest.fn() },
   panelId: 'test-popover',
-  refs: { surface: mockSurfaceRef, trigger: mockTriggerRef },
+  kind: 'popover',
+  refs: {
+    surface: mockSurfaceRef,
+    trigger: mockTriggerRef,
+    panel: { current: null },
+  },
   behavior: 'auto',
   anchored: {
     isPositioned: true,
@@ -29,10 +35,15 @@ const mockContext = {
 
 jest.mock('../../react/overlayContext', () => ({
   useAnchoredOverlayContext: () => mockContext,
+  useOverlayContext: () => mockContext,
 }))
 jest.mock('../../react/OverlayHost.web', () => ({
   OVERLAY_ROOT_ID: 'rno-overlay-root',
 }))
+
+// The capability registry (not prototype absence) pins the fallback branch.
+beforeAll(() => setWebCapabilityOverrides({ popover: false }))
+afterAll(() => setWebCapabilityOverrides(null))
 
 beforeEach(() => {
   mockHostShown.mockReset()

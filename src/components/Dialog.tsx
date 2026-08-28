@@ -178,7 +178,8 @@ function DialogContent({
   // of the surface — the pinned Close above all — never scroll away with
   // the content. Web clips via overflow hidden; native views overflow
   // their parent visibly, so the surface also shrinks to the CenteredModal
-  // wrapper's bound (layout.maxHeight or 90%).
+  // wrapper's bound (layout.maxHeight or 90%). The web reveal (opacity/
+  // scale) lives in the layered stylesheet, keyed on data-overlaid-state.
   const boundStyle =
     Platform.OS === 'web'
       ? ({
@@ -186,9 +187,6 @@ function DialogContent({
           maxHeight: context.layout?.maxHeight ?? '90vh',
           minWidth: 0,
           overflow: 'hidden',
-          opacity: context.state.isPresented ? 1 : 0,
-          transform: context.state.isPresented ? 'scale(1)' : 'scale(0.98)',
-          transition: `opacity ${context.exitMs}ms ease, transform ${context.exitMs}ms ease`,
         } as unknown as ViewStyle)
       : ({ maxHeight: '100%', flexShrink: 1, overflow: 'hidden' } as ViewStyle)
 
@@ -201,6 +199,7 @@ function DialogContent({
       <DialogSurface
         ref={context.refs.surface as never}
         className={className}
+        unstyled={unstyled}
         style={[
           unstyled ? undefined : defaults.dialogSurface,
           boundStyle,

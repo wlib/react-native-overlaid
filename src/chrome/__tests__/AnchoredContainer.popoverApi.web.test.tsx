@@ -3,6 +3,7 @@ import type * as TestingLibraryModule from '@testing-library/react'
 import type * as ReactNativeModule from 'react-native'
 import type * as OverlayHostModule from '../../react/OverlayHost.web'
 import type * as PopoverModule from '../../components/Popover'
+import type * as WebCapabilitiesModule from '../webCapabilities'
 import type { Ref } from 'react'
 
 ;(
@@ -71,7 +72,15 @@ const { Text } = require('react-native') as typeof ReactNativeModule
 const { OverlayHost } =
   require('../../react/OverlayHost') as typeof OverlayHostModule
 const { Popover } = require('../../components/Popover') as typeof PopoverModule
+const { setWebCapabilityOverrides } =
+  require('../webCapabilities') as typeof WebCapabilitiesModule
 /* eslint-enable @typescript-eslint/no-require-imports */
+
+// The prototype mocks above provide the popover *behavior* jsdom lacks; the
+// registry override pins the *branch* selection, per the capability test
+// strategy (F4).
+beforeAll(() => setWebCapabilityOverrides({ popover: true }))
+afterAll(() => setWebCapabilityOverrides(null))
 
 const ui = (
   dismissable: boolean,

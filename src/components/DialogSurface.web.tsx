@@ -1,20 +1,32 @@
 import { forwardRef, type CSSProperties } from 'react'
+import { useExitTransition } from '../chrome/useExitTransition'
 import { flattenToCss } from '../react/flattenStyle'
+import { useOverlayContext } from '../react/overlayContext'
 import type { DialogSurfaceProps } from './DialogSurface'
 
 export type { DialogSurfaceProps }
 
 export const DialogSurface = forwardRef<HTMLDivElement, DialogSurfaceProps>(
-  function DialogSurface({ children, className, style, a11y }, ref) {
+  function DialogSurface({ children, className, style, unstyled, a11y }, ref) {
+    const { state } = useOverlayContext()
     const {
       accessibilityViewIsModal: _nativeModal,
       accessibilityLabel: _nativeLabel,
       ...webA11y
     } = a11y
+
+    useExitTransition()
+
     return (
       <div
         ref={ref}
         className={className}
+        data-overlaid-kind="dialog"
+        data-overlaid-part="surface"
+        data-overlaid-state={state.isPresented ? 'open' : 'closed'}
+        data-overlaid-phase={state.phase}
+        data-overlaid-reveal=""
+        {...(unstyled ? { 'data-overlaid-unstyled': '' } : {})}
         style={{
           // RN View layout parity: on native the surface is a View (a flex
           // column), so RNW's inline Texts must stack here too.

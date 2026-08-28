@@ -66,6 +66,19 @@ export function BoundedTooltip() {
   )
 }
 
+export function TooltipTimingPair() {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 32 }}>
+      <Tooltip text="First tooltip: opens after the hover-intent delay.">
+        <Text>Hover me first</Text>
+      </Tooltip>
+      <Tooltip text="Second tooltip: opens instantly while the host is warm.">
+        <Text>Then hover me</Text>
+      </Tooltip>
+    </View>
+  )
+}
+
 export function RenderPropTooltip() {
   return (
     <Tooltip text="The render-prop form passes trigger props to your own element.">

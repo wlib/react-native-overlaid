@@ -98,8 +98,10 @@ export const ThreeDetents: Story = {
 
     // From a higher detent (the initial 66%), a hard fling must NOT
     // dismiss — it snaps down the detent ladder (here to 33%), like the
-    // OS sheets. Inline height is the snap target, set synchronously.
-    const heightPx = () => parseFloat(panel.style.height || '0')
+    // OS sheets. The inline --overlaid-sheet-height custom property is the
+    // snap target, set synchronously (the CSS height reads it).
+    const heightPx = () =>
+      parseFloat(panel.style.getPropertyValue('--overlaid-sheet-height') || '0')
     const heightBefore = heightPx()
     await fling(300)
     await waitFor(() => expect(heightPx()).toBeLessThan(heightBefore))

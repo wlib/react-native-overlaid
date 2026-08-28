@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useRef,
   useState,
   type ReactElement,
   type ReactNode,
@@ -21,12 +20,14 @@ import {
 import { AnchoredContainer } from '../chrome/AnchoredContainer'
 import type { Placement } from '../react/anchoredPosition'
 import type { ContextBridge } from '../react/contextBridge'
+import { useOptionalLayerHost } from '../react/LayerHostContext'
 import {
   OverlayProvider,
   type OverlayInsets,
   type TriggerA11yProps,
 } from '../react/overlayContext'
 import { useAnchorScrollDismiss } from '../react/useAnchorScrollDismiss'
+import { useHoverIntent } from '../react/useHoverIntent'
 import { useAnchoredOverlayRoot } from '../react/useOverlayRoot'
 import { useTriggerRegistration } from '../react/useTriggerRegistration'
 import * as defaults from './defaultStyles'
@@ -44,6 +45,23 @@ export type TooltipTriggerProps = TriggerA11yProps & {
 }
 
 const HOVER_CLOSE_GRACE_MS = 150
+const HOVER_OPEN_DELAY_MS = 400
+const HOVER_WARMTH_MS = 700
+
+/**
+ * Web-only hover intent timing. Focus-open and touch/pen-toggle stay
+ * instant regardless — keyboard users already paid the traversal cost,
+ * and a tap is explicit intent.
+ */
+export type TooltipTiming = {
+  /** ms of hover before opening; `false` = open immediately. Default 400. */
+  delay?: number | false | undefined
+  /**
+   * ms after any tooltip in this OverlayHost closes during which hover
+   * opens instantly; `false` disables. Default 700.
+   */
+  warmth?: number | false | undefined
+}
 
 type TooltipContentProps =
   | {
@@ -64,6 +82,7 @@ export type TooltipProps = TooltipContentProps & {
   textStyle?: StyleProp<TextStyle> | undefined
   boundaryRef?: RefObject<unknown> | undefined
   closeOnScroll?: boolean | undefined
+  timing?: TooltipTiming | undefined
   contextBridge?: ContextBridge | undefined
   insets?: OverlayInsets | undefined
   children: ReactElement | ((props: TooltipTriggerProps) => ReactElement)
@@ -79,6 +98,7 @@ export function Tooltip({
   textStyle,
   boundaryRef,
   closeOnScroll = true,
+  timing,
   contextBridge,
   insets,
   children,
@@ -96,20 +116,7 @@ export function Tooltip({
 
   const [open, setOpen] = useState(false)
   const toggleOpen = useCallback(() => setOpen((current) => !current), [])
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const cancelScheduledClose = useCallback(() => {
-    if (closeTimer.current === null) return
-    clearTimeout(closeTimer.current)
-    closeTimer.current = null
-  }, [])
-  const scheduleClose = useCallback(() => {
-    cancelScheduledClose()
-    closeTimer.current = setTimeout(() => {
-      closeTimer.current = null
-      setOpen(false)
-    }, HOVER_CLOSE_GRACE_MS)
-  }, [cancelScheduledClose])
-  useEffect(() => cancelScheduledClose, [cancelScheduledClose])
+  const host = useOptionalLayerHost()
 
   const context = useAnchoredOverlayRoot(
     {
@@ -130,6 +137,24 @@ export function Tooltip({
   const isWeb = Platform.OS === 'web'
   useTriggerRegistration(context.id, context.refs.trigger, toggleOpen, 'hint')
 
+  // The hover intent engine owns web mouse timing: first hover in a host
+  // waits `delay`, hovers while the host is warm open instantly, and
+  // leaving grants a close grace. Native stays tap-to-toggle; the timers
+  // simply never start there.
+  const intent = useHoverIntent(
+    host,
+    context.state.isOpen,
+    {
+      delayMs: timing?.delay ?? HOVER_OPEN_DELAY_MS,
+      warmthMs: timing?.warmth ?? HOVER_WARMTH_MS,
+      closeGraceMs: HOVER_CLOSE_GRACE_MS,
+    },
+    {
+      onOpen: () => setOpen(true),
+      onClose: () => setOpen(false),
+    },
+  )
+
   const onScrollDismiss = useCallback(() => {
     context.actions.requestDismiss('scroll')
   }, [context.actions])
@@ -146,15 +171,27 @@ export function Tooltip({
     if (!isWeb || !isOpen) return
     const node = panelRef.current as HTMLElement | null
     if (!node || typeof node.addEventListener !== 'function') return
-    const onEnter = () => cancelScheduledClose()
-    const onLeave = () => scheduleClose()
+    const onEnter = () => intent.pointerEnter()
+    const onLeave = () => intent.pointerLeave()
     node.addEventListener('pointerenter', onEnter)
     node.addEventListener('pointerleave', onLeave)
     return () => {
       node.removeEventListener('pointerenter', onEnter)
       node.removeEventListener('pointerleave', onLeave)
     }
-  }, [cancelScheduledClose, isOpen, isWeb, panelRef, scheduleClose])
+  }, [intent, isOpen, isWeb, panelRef])
+
+  // WCAG 1.4.13: Escape must also clear a *pending* delayed open. A not-yet-
+  // visible tooltip is not in the layer stack, so the kernel cannot route
+  // this — cancel directly at the document.
+  useEffect(() => {
+    if (!isWeb || typeof document === 'undefined') return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') intent.cancel()
+    }
+    document.addEventListener('keydown', onKeyDown, true)
+    return () => document.removeEventListener('keydown', onKeyDown, true)
+  }, [intent, isWeb])
 
   const triggerProps: TooltipTriggerProps = {
     ...(isWeb
@@ -166,15 +203,14 @@ export function Tooltip({
           onPointerEnter: (event: NativePointerEvent) => {
             const pointerType = event.nativeEvent.pointerType
             if (pointerType && pointerType !== 'mouse') return
-            cancelScheduledClose()
-            setOpen(true)
+            intent.pointerEnter()
           },
           onPointerLeave: (event: NativePointerEvent) => {
             const pointerType = event.nativeEvent.pointerType
-            if (!pointerType || pointerType === 'mouse') scheduleClose()
+            if (!pointerType || pointerType === 'mouse') intent.pointerLeave()
           },
-          onFocus: () => setOpen(true),
-          onBlur: () => setOpen(false),
+          onFocus: () => intent.focus(),
+          onBlur: () => intent.blur(),
         }
       : {
           onPress: toggleOpen,
@@ -201,6 +237,7 @@ export function Tooltip({
       )}
       {context.state.isMounted ? (
         <AnchoredContainer
+          unstyled={unstyled}
           style={[
             unstyled ? undefined : defaults.tooltipSurface,
             isWeb ? undefined : ({ pointerEvents: 'none' } as ViewStyle),

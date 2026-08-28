@@ -1,68 +1,200 @@
-/* Import once in a web application. Native platforms do not use this file. */
+/* Import once in a web application. Native platforms do not use this file.
+ *
+ * Everything ships inside the `overlaid.*` cascade layers below, so ANY
+ * unlayered consumer rule beats the library's defaults and motion without
+ * specificity wars. The leading @layer statement is the canonical sublayer
+ * order; consumers who declare their own layers should import this file
+ * first (see docs/STYLING.md). The library never uses !important inside a
+ * layer — the reduced-motion guard at the end is intentionally unlayered
+ * and strongest.
+ *
+ * Selectors are the public styling contract (docs/STYLING.md):
+ *   data-overlaid-kind  = dialog | drawer | sheet | popover | tooltip
+ *   data-overlaid-part  = host | surface
+ *   data-overlaid-state = open | closed        (open ⇔ phase 'presented')
+ *   data-overlaid-phase = mounting | presented | dismissing
+ *   data-overlaid-side  = left | right          (drawer)
+ *   data-overlaid-dragging                      (sheet drag in progress)
+ *   data-overlaid-unstyled                      (consumer passed unstyled)
+ */
 
-dialog[data-overlaid-modal] {
-  position: fixed;
-  inset: 0;
-  width: auto;
-  height: auto;
-  max-width: none;
-  max-height: none;
-  margin: 0;
-  border: 0;
-  padding-top: max(16px, env(safe-area-inset-top, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  background: transparent;
-  overflow: visible;
-  color: inherit;
+@layer overlaid.reset, overlaid.defaults, overlaid.motion;
+
+@layer overlaid.reset {
+  dialog[data-overlaid-modal] {
+    position: fixed;
+    inset: 0;
+    width: auto;
+    height: auto;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border: 0;
+    padding-top: max(16px, env(safe-area-inset-top, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    background: transparent;
+    overflow: visible;
+    color: inherit;
+  }
+
+  dialog[data-overlaid-modal][open] {
+    display: grid;
+    place-items: center;
+  }
+
+  dialog[data-overlaid-modal-mode='modeless'] {
+    z-index: 9999;
+  }
+
+  /* `pointer-events` inherits. A backdrop-free host lets empty-space hits
+   * pass through, while its actual panel remains interactive. */
+  dialog[data-overlaid-modal] > * {
+    pointer-events: auto;
+  }
+
+  dialog[data-overlaid-modal] [data-overlaid-centered-panel] > * {
+    min-height: 0;
+    flex-shrink: 1;
+  }
+
+  dialog[data-overlaid-has-backdrop='false']::backdrop {
+    background: transparent;
+  }
+
+  /* Remove UA popover chrome at zero specificity so consumer styles win. */
+  :where([data-overlaid-popover]) {
+    inset: auto;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    color: inherit;
+    overflow: visible;
+  }
 }
 
-dialog[data-overlaid-modal][open] {
-  display: grid;
-  place-items: center;
+/* Default visuals (formerly src/components/defaultStyles.web.ts). Theme
+ * tokens are consumer API; per-kind literals are their fallbacks. */
+@layer overlaid.defaults {
+  dialog[data-overlaid-has-backdrop='true']::backdrop {
+    background-color: var(--overlaid-backdrop-color, rgb(0 0 0 / 0.3));
+  }
+
+  [data-overlaid-kind='dialog'][data-overlaid-part='surface']:not(
+      [data-overlaid-unstyled]
+    ) {
+    background-color: var(--overlaid-surface-bg, #ffffff);
+    border-radius: var(--overlaid-surface-radius, 16px);
+    padding: 32px;
+    box-shadow: var(--overlaid-surface-shadow, 0 8px 24px rgb(0 0 0 / 0.15));
+  }
+
+  /* The drawer surface keeps an opaque background even when unstyled —
+   * matching the previous chrome, which painted it outside the defaults. */
+  [data-overlaid-kind='drawer'][data-overlaid-part='surface'] {
+    background-color: var(--overlaid-surface-bg, #ffffff);
+  }
+  [data-overlaid-kind='drawer'][data-overlaid-part='surface']:not(
+      [data-overlaid-unstyled]
+    ) {
+    padding: 16px;
+    box-shadow: var(--overlaid-surface-shadow, 0 0 24px rgb(0 0 0 / 0.15));
+  }
+
+  /* Sheet has no unstyled prop; its surface defaults always apply. */
+  [data-overlaid-kind='sheet'][data-overlaid-part='surface'] {
+    background-color: var(--overlaid-surface-bg, #ffffff);
+    border-top-left-radius: var(--overlaid-surface-radius, 16px);
+    border-top-right-radius: var(--overlaid-surface-radius, 16px);
+    box-shadow: var(--overlaid-surface-shadow, 0 -8px 30px rgb(0 0 0 / 0.12));
+  }
+
+  [data-overlaid-kind='popover'][data-overlaid-part='surface']:not(
+      [data-overlaid-unstyled]
+    ) {
+    background-color: var(--overlaid-surface-bg, #ffffff);
+    border-radius: var(--overlaid-surface-radius, 12px);
+    padding: 16px;
+    box-shadow: var(--overlaid-surface-shadow, 0 4px 16px rgb(0 0 0 / 0.18));
+  }
+
+  [data-overlaid-kind='tooltip'][data-overlaid-part='surface']:not(
+      [data-overlaid-unstyled]
+    ) {
+    max-width: 256px;
+    background-color: var(--overlaid-tooltip-bg, #111827);
+    border-radius: var(--overlaid-surface-radius, 8px);
+    padding: 8px 12px;
+    box-shadow: var(--overlaid-surface-shadow, 0 4px 12px rgb(0 0 0 / 0.2));
+  }
 }
 
-dialog[data-overlaid-modal-mode='modeless'] {
-  z-index: 9999;
-}
+/* Reveal motion (formerly inline styles in the web chrome). Entry works
+ * because chromes mount with data-overlaid-state="closed" and the kernel's
+ * presentation gates guarantee the flip to "open" lands in a later commit.
+ * --overlaid-duration is written inline by each chrome from its exitMs. */
+@layer overlaid.motion {
+  [data-overlaid-reveal] {
+    transition-property: none;
+    transition-duration: var(--overlaid-duration, 200ms);
+    transition-timing-function: ease;
+  }
 
-/* `pointer-events` inherits. A backdrop-free host lets empty-space hits pass
- * through, while its actual panel remains interactive. */
-dialog[data-overlaid-modal] > * {
-  pointer-events: auto;
-}
+  dialog[data-overlaid-has-backdrop='true']::backdrop {
+    opacity: 0;
+    transition: opacity
+      var(--overlaid-backdrop-duration, var(--overlaid-duration, 200ms)) ease;
+  }
+  dialog[data-overlaid-has-backdrop='true'][data-overlaid-phase='presented']::backdrop {
+    opacity: var(--overlaid-backdrop-opacity, 1);
+  }
 
-dialog[data-overlaid-modal] [data-overlaid-centered-panel] > * {
-  min-height: 0;
-  flex-shrink: 1;
-}
+  [data-overlaid-kind='popover'][data-overlaid-part='surface'],
+  [data-overlaid-kind='tooltip'][data-overlaid-part='surface'] {
+    transition-property: opacity;
+    opacity: 1;
+  }
+  [data-overlaid-kind='popover'][data-overlaid-part='surface'][data-overlaid-state='closed'],
+  [data-overlaid-kind='tooltip'][data-overlaid-part='surface'][data-overlaid-state='closed'] {
+    opacity: 0;
+  }
 
-dialog[data-overlaid-has-backdrop='true']::backdrop {
-  background-color: var(--overlaid-backdrop-color, rgb(0 0 0 / 0.3));
-  opacity: 0;
-  transition: opacity var(--overlaid-backdrop-duration, 200ms) ease;
-}
+  [data-overlaid-kind='dialog'][data-overlaid-part='surface'] {
+    transition-property: opacity, transform;
+    opacity: 1;
+    transform: scale(1);
+  }
+  [data-overlaid-kind='dialog'][data-overlaid-part='surface'][data-overlaid-state='closed'] {
+    opacity: 0;
+    transform: scale(0.98);
+  }
 
-dialog[data-overlaid-has-backdrop='true'][data-overlaid-phase='presented']::backdrop {
-  opacity: var(--overlaid-backdrop-opacity, 1);
-}
+  [data-overlaid-kind='drawer'][data-overlaid-part='surface'] {
+    transition-property: transform;
+    transform: translateX(0);
+  }
+  [data-overlaid-kind='drawer'][data-overlaid-part='surface'][data-overlaid-state='closed'][data-overlaid-side='right'] {
+    transform: translateX(100%);
+  }
+  [data-overlaid-kind='drawer'][data-overlaid-part='surface'][data-overlaid-state='closed'][data-overlaid-side='left'] {
+    transform: translateX(-100%);
+  }
 
-dialog[data-overlaid-has-backdrop='false']::backdrop {
-  background: transparent;
-}
-
-/* Remove UA popover chrome at zero specificity so consumer styles win. */
-:where([data-overlaid-popover]) {
-  inset: auto;
-  width: auto;
-  height: auto;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background-color: transparent;
-  color: inherit;
-  overflow: visible;
+  /* The sheet's numbers are inputs, not styles: chrome writes the
+   * translate/height custom properties every drag frame and the transition
+   * itself lives here, muted while a drag is active. */
+  [data-overlaid-kind='sheet'][data-overlaid-part='surface'] {
+    transition-property: transform, height;
+    transform: translateX(-50%) translateY(var(--overlaid-sheet-translate, 0px));
+    height: var(--overlaid-sheet-height, auto);
+  }
+  [data-overlaid-kind='sheet'][data-overlaid-part='surface'][data-overlaid-dragging] {
+    transition-duration: 0ms;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

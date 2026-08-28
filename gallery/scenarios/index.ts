@@ -56,6 +56,7 @@ import {
   HintDoesNotDisplaceAuto,
   HoverFocusTooltip,
   RenderPropTooltip,
+  TooltipTimingPair,
 } from './tooltip'
 
 export type Scenario = {
@@ -323,6 +324,14 @@ export const scenarios: Scenario[] = [
     description:
       'Open the popover, then show the tooltip: hovering (web) or tapping (native) a hint must not close a deliberately opened popover.',
     Component: HintDoesNotDisplaceAuto,
+  },
+  {
+    key: 'tooltip-timing',
+    family: 'Tooltip',
+    title: 'Hover intent timing',
+    description:
+      'Web-only timing: the first hover waits the intent delay; while the host is warm a sibling tooltip opens instantly. Native stays tap-to-toggle.',
+    Component: TooltipTimingPair,
   },
   {
     key: 'tooltip-boundary',

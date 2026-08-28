@@ -9,6 +9,7 @@ import {
   HintDoesNotDisplaceAuto as HintDoesNotDisplaceAutoScenario,
   HoverFocusTooltip,
   RenderPropTooltip,
+  TooltipTimingPair,
 } from '../gallery/scenarios'
 
 const meta: Meta = {
@@ -87,6 +88,35 @@ export const HintDoesNotDisplaceAuto: Story = {
     await doc.findByText('Hovering me must not close the popover.')
     // The load-bearing asymmetry: hint.displacesTransientsOnOpen = false.
     await expect(doc.getByText('Popover stays open')).toBeInTheDocument()
+  },
+}
+
+export const DelayedThenInstant: Story = {
+  name: 'Hover intent: first hover waits, warm hover is instant',
+  render: () => <TooltipTimingPair />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const doc = body(canvasElement)
+    const first = 'First tooltip: opens after the hover-intent delay.'
+    const second = 'Second tooltip: opens instantly while the host is warm.'
+
+    // Cold hover: nothing appears before the 400 ms intent delay. Real
+    // timers with generous margins (the checks land well under the delay).
+    const firstTrigger = await canvas.findByText('Hover me first')
+    await userEvent.hover(firstTrigger)
+    expect(doc.queryByText(first)).not.toBeInTheDocument()
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(doc.queryByText(first)).not.toBeInTheDocument()
+    await doc.findByText(first, undefined, { timeout: 1000 })
+
+    // Leaving closes after the grace, which starts the 700 ms warm window.
+    await userEvent.unhover(firstTrigger)
+    await waitFor(() => expect(doc.queryByText(first)).not.toBeInTheDocument())
+
+    // Warm hover: the sibling opens well inside its own 400 ms delay —
+    // the 250 ms budget only fits the instant path.
+    await userEvent.hover(canvas.getByText('Then hover me'))
+    await doc.findByText(second, undefined, { timeout: 250 })
   },
 }
 

@@ -135,7 +135,10 @@ the trigger's `accessibilityHint`, because a transient portal view is not a
 reliable source of screen-reader context.
 
 Web Tooltip opens for mouse hover and keyboard focus and toggles for touch or
-pen. Native Tooltip is tap-to-toggle.
+pen. Native Tooltip is tap-to-toggle. The `timing` prop (hover-intent
+`delay`/`warmth`) is therefore web-only, like `closeOnScroll` nuances:
+native has no hover channel for the timers to govern, and focus/tap opens
+stay instant on both platforms.
 
 ## Safe areas
 

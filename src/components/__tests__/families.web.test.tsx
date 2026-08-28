@@ -221,7 +221,9 @@ describe('web component-family parity', () => {
     ) as HTMLElement
     const dialog = panel.closest('dialog') as HTMLDialogElement
     expect(panel.style.maxWidth).toBe('480px')
-    expect(panel.style.height).not.toBe('')
+    // The measured detent height is a custom-property input to the motion
+    // layer (F2); the CSS `height` itself now lives in styles.css.
+    expect(panel.style.getPropertyValue('--overlaid-sheet-height')).not.toBe('')
     expect(scroll).not.toBeNull()
     expect(dialog.dataset.overlaidHasBackdrop).toBe('false')
     expect(dialog.dataset.overlaidModalMode).toBe('modal')

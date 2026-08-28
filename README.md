@@ -31,7 +31,9 @@ after installing it. Expo projects need a development build, not Expo Go, for
 compatible React Native type/runtime contract such as `react-native@^0.76`.
 Native targets and React 19 web targets can use React Native 0.81 or newer.
 
-Import the web reset once in the web entry:
+Import the web stylesheet once in the web entry — it carries the UA resets,
+the default surface visuals, and the reveal transitions (all inside cascade
+layers, so your own CSS wins; see [docs/STYLING.md](./docs/STYLING.md)):
 
 ```tsx
 import 'react-native-overlaid/styles.css'
@@ -262,11 +264,18 @@ also call it. Use an explicit Close action after any confirmation flow.
 - `placement`, `boundaryRef`, `closeOnScroll`, `insets`, and `contextBridge`
   control anchored behavior.
 - `unstyled`, `surfaceStyle`, and `textStyle` customize appearance.
+- `timing` (web-only) tunes hover intent: `{ delay, warmth }`. The first
+  hover in a host waits `delay` ms (default 400; `false` opens immediately —
+  the previous behavior); for `warmth` ms after any tooltip in the same
+  `OverlayHost` closes (default 700; `false` disables), hover opens
+  instantly, so sweeping across a toolbar feels immediate. Focus-open and
+  touch/pen-toggle are always instant regardless of `timing`.
 - `children` is a trigger element or a render function receiving typed ref,
   interaction, open-state, and accessibility props.
 
 Tooltip has no public `open`, `dismissable`, or dismissal-veto props. Web opens
-for mouse hover or focus and toggles for touch/pen; native toggles on tap.
+for mouse hover (after the intent delay) or focus and toggles for touch/pen;
+native toggles on tap.
 
 ### Trigger and Close parts
 
@@ -343,7 +352,14 @@ resolver selected unsuffixed files. Put `.web.*` before the corresponding
 unsuffixed extension and alias `react-native` to `react-native-web`.
 
 **Web surfaces are unstyled or the dialog occupies ordinary layout.** Import
-`react-native-overlaid/styles.css` once in the web application.
+`react-native-overlaid/styles.css` once in the web application. The
+stylesheet now also carries the default surface visuals and every reveal
+transition, so without it overlays render bare and unanimated, not merely
+un-reset.
+
+**A tooltip feels slow to appear on web.** That is the 400 ms hover-intent
+delay (first hover only; warm hovers are instant). Pass
+`timing={{ delay: false }}` to restore instant opens.
 
 **A native Sheet cannot load or Expo Go reports a missing native module.**
 Install TrueSheet, run pods/prebuild as applicable, and rebuild a development
@@ -366,6 +382,7 @@ snapshotted for each presentation.
 
 ## Design notes
 
+- [Styling the web chrome](./docs/STYLING.md)
 - [Platform divergences](./docs/PLATFORM-DIVERGENCES.md)
 - [Render trees and context ownership](./docs/RENDER-TREES.md)
 - [Architecture](./docs/ARCHITECTURE.md)

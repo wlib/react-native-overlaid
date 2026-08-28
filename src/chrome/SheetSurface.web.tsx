@@ -25,18 +25,12 @@ import { flattenToCss } from '../react/flattenStyle'
 import { useOverlayContext } from '../react/overlayContext'
 import { ModalContainer } from './ModalContainer'
 import type { SheetSurfaceProps } from './SheetSurface'
+import { useExitTransition } from './useExitTransition'
 
 export type { SheetSurfaceProps }
 
 const TOP_GAP = 12
 const DRAG_START_THRESHOLD = 8
-
-const DEFAULT_SURFACE_STYLE: CSSProperties = {
-  backgroundColor: '#ffffff',
-  borderTopLeftRadius: 16,
-  borderTopRightRadius: 16,
-  boxShadow: '0 -8px 30px rgba(0, 0, 0, 0.12)',
-}
 
 export function SheetSurface({ scrim, ...panelProps }: SheetSurfaceProps) {
   const backdrop =
@@ -73,6 +67,7 @@ function DraggablePanel({
   children,
 }: Omit<SheetSurfaceProps, 'scrim'>) {
   const context = useOverlayContext()
+  useExitTransition()
   const [viewport, setViewport] = useState(viewportHeight)
   const [presentationConfig, setPresentationConfig] = useState(() => ({
     detents,
@@ -349,7 +344,12 @@ function DraggablePanel({
     <div
       ref={context.refs.surface as RefCallback<HTMLDivElement>}
       data-overlaid-sheet=""
+      data-overlaid-kind="sheet"
+      data-overlaid-part="surface"
+      data-overlaid-state={context.state.isPresented ? 'open' : 'closed'}
+      data-overlaid-phase={context.state.phase}
       data-overlaid-reveal=""
+      {...(isDragging ? { 'data-overlaid-dragging': '' } : {})}
       {...surfaceA11y}
       aria-label={accessibilityLabel}
       className={className}
@@ -365,8 +365,14 @@ function DraggablePanel({
         overflow: 'hidden',
         pointerEvents: 'auto',
         touchAction: isDragging ? 'none' : undefined,
-        ...DEFAULT_SURFACE_STYLE,
-        height: visibleHeight || undefined,
+        // Dynamic drag numbers are inputs to the motion layer, not styles:
+        // the transform/height transitions live in styles.css, muted while
+        // data-overlaid-dragging is present.
+        ['--overlaid-sheet-translate' as string]:
+          typeof translateY === 'number' ? `${translateY}px` : translateY,
+        ['--overlaid-sheet-height' as string]: visibleHeight
+          ? `${visibleHeight}px`
+          : undefined,
         width: (context.layout?.width as CSSProperties['width']) ?? '100%',
         maxWidth: context.layout?.maxWidth as CSSProperties['maxWidth'],
         minWidth: context.layout?.minWidth as CSSProperties['minWidth'],
@@ -375,13 +381,6 @@ function DraggablePanel({
           `calc(100dvh - ${TOP_GAP}px)`,
         minHeight: context.layout?.minHeight as CSSProperties['minHeight'],
         left: '50%',
-        transform:
-          typeof translateY === 'number'
-            ? `translateX(-50%) translateY(${translateY}px)`
-            : `translateX(-50%) translateY(${translateY})`,
-        transitionProperty: 'height, transform',
-        transitionTimingFunction: 'ease',
-        transitionDuration: isDragging ? '0ms' : `${context.exitMs}ms`,
         ...flattenToCss(style),
       }}
     >

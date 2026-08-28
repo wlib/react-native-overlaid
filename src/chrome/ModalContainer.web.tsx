@@ -73,6 +73,9 @@ export function ModalContainer({
       ref={dialogRef}
       id={panelId}
       data-overlaid-modal=""
+      data-overlaid-kind={kind}
+      data-overlaid-part="host"
+      data-overlaid-state={state.isPresented ? 'open' : 'closed'}
       data-overlaid-phase={state.phase}
       data-overlaid-has-backdrop={hasBackdrop ? 'true' : 'false'}
       data-overlaid-modal-mode={usesModalTopLayer ? 'modal' : 'modeless'}
@@ -80,6 +83,10 @@ export function ModalContainer({
       {...a11y.host}
       className={backdrop ? backdrop.className : undefined}
       style={{
+        // --overlaid-duration generalizes the backdrop-specific property;
+        // both are written so pre-contract consumer CSS keeps reading the
+        // original name.
+        ['--overlaid-duration' as string]: `${exitMs}ms`,
         ['--overlaid-backdrop-duration' as string]: `${exitMs}ms`,
         ['--overlaid-backdrop-color' as string]: backdropStyle?.backgroundColor,
         ['--overlaid-backdrop-opacity' as string]: backdropStyle?.opacity,

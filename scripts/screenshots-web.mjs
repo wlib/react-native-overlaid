@@ -213,6 +213,11 @@ const STATES = {
       steps: [{ click: '1. Open this popover' }, { hover: '2. Then hover me' }],
     },
   ],
+  // The hover step's settle wait comfortably covers the 400 ms first-hover
+  // intent delay.
+  'overlays-tooltip--delayed-then-instant': [
+    { name: 'open', steps: [{ hover: 'Hover me first' }] },
+  ],
   'overlays-tooltip--with-boundary': [
     { name: 'open', steps: [{ hover: 'Hover near the edge' }] },
   ],
@@ -231,6 +236,22 @@ const RESETS = {
     { click: 'Toggle veto popover' },
   ],
 }
+
+/**
+ * Fallback-capability pass (test strategy F4): a curated subset re-captured
+ * with `overlaid-caps=none` (read by .storybook/preview.ts before render),
+ * photographing the portal/z-index chrome that ships to browsers without
+ * the Popover API — including its documented cannot-beat-a-modal
+ * limitation in the popover-inside-dialog story. Files gain a
+ * `--caps-none` suffix and a `caps` field in the manifest.
+ */
+const FALLBACK_CAPS_QUERY = 'overlaid-caps=none'
+const FALLBACK_CAPS_STORIES = [
+  'overlays-popover--basic',
+  'overlays-popover--outside-press-dismisses',
+  'overlays-tooltip--hover-and-focus',
+  'overlays-stacking-nesting--popover-inside-dialog',
+]
 
 async function locate(page, text) {
   // RN-web renders text as div[dir=auto] leaves — except role="heading"
@@ -334,13 +355,15 @@ async function main() {
   const manifest = []
   const failures = []
 
-  for (const story of stories) {
+  const captureStory = async (story, { query, suffix, caps } = {}) => {
     const states = [{ name: 'closed', steps: [] }, ...(STATES[story.id] ?? [])]
     for (const state of states) {
-      const file = `${story.id}--${state.name}.png`
+      const file = `${story.id}--${state.name}${suffix ?? ''}.png`
       try {
         await page.goto(
-          `${BASE_URL}/iframe.html?id=${story.id}&viewMode=story`,
+          `${BASE_URL}/iframe.html?id=${story.id}&viewMode=story${
+            query ? `&${query}` : ''
+          }`,
           { waitUntil: 'domcontentloaded' },
         )
         await settle(page, story.id)
@@ -353,6 +376,7 @@ async function main() {
           name: story.name,
           state: state.name,
           file,
+          ...(caps ? { caps } : {}),
         })
         process.stdout.write(`ok   ${file}\n`)
       } catch (error) {
@@ -360,6 +384,17 @@ async function main() {
         process.stdout.write(`FAIL ${file} — ${error}\n`)
       }
     }
+  }
+
+  for (const story of stories) await captureStory(story)
+
+  for (const story of stories) {
+    if (!FALLBACK_CAPS_STORIES.includes(story.id)) continue
+    await captureStory(story, {
+      query: FALLBACK_CAPS_QUERY,
+      suffix: '--caps-none',
+      caps: 'none',
+    })
   }
 
   await browser.close()

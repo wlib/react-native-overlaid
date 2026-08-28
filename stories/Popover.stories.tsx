@@ -93,13 +93,13 @@ export const NonDismissable: Story = {
 
     await userEvent.keyboard('{Escape}')
     await new Promise((resolve) => setTimeout(resolve, 200))
-    // Still there AND still presented (opacity 1) — not vacuously present
-    // because a slow exit animation hasn't finished yet.
+    // Still there AND still presented (data-overlaid-state="open") — not
+    // vacuously present because a slow exit animation hasn't finished yet.
     const panel = doc
       .getByText('Close me')
       .closest('[data-overlaid-popover]') as HTMLElement
     await expect(panel).not.toBeNull()
-    await expect(panel.style.opacity).toBe('1')
+    await expect(panel.dataset.overlaidState).toBe('open')
 
     await userEvent.click(doc.getByText('Close me'))
     await waitFor(() =>
@@ -149,7 +149,7 @@ export const ScrollInsidePanelDoesNotDismiss: Story = {
       .getByText('Row 1 — scrollable filler content')
       .closest('[data-overlaid-popover]') as HTMLElement
     await expect(panel).not.toBeNull()
-    await expect(panel.style.opacity).toBe('1')
+    await expect(panel.dataset.overlaidState).toBe('open')
   },
 }
 

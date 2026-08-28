@@ -1,11 +1,13 @@
 'use client'
 
 // WEB DrawerPanel. The modal dialog owns focus/backdrop; this surface owns
-// the edge slide and a scroll area that does not move absolute controls.
+// a scroll area that does not move absolute controls. The edge slide itself
+// lives in the layered stylesheet, keyed on data-overlaid-state/-side.
 import type { CSSProperties, RefCallback } from 'react'
 import { flattenToCss } from '../react/flattenStyle'
 import { useOverlayContext } from '../react/overlayContext'
 import type { DrawerPanelProps } from './DrawerPanel'
+import { useExitTransition } from './useExitTransition'
 
 export type { DrawerPanelProps }
 
@@ -16,6 +18,7 @@ export function DrawerPanel({
   accessibilityLabel,
   className,
   style,
+  unstyled,
   children,
 }: DrawerPanelProps) {
   const context = useOverlayContext()
@@ -25,11 +28,19 @@ export function DrawerPanel({
     ...surfaceA11y
   } = context.a11y.surface
 
+  useExitTransition()
+
   return (
     <div
       ref={context.refs.surface as RefCallback<HTMLDivElement>}
       data-overlaid-drawer=""
+      data-overlaid-kind="drawer"
+      data-overlaid-part="surface"
+      data-overlaid-state={context.state.isPresented ? 'open' : 'closed'}
+      data-overlaid-phase={context.state.phase}
+      data-overlaid-side={side}
       data-overlaid-reveal=""
+      {...(unstyled ? { 'data-overlaid-unstyled': '' } : {})}
       {...surfaceA11y}
       aria-label={accessibilityLabel}
       className={className}
@@ -45,12 +56,6 @@ export function DrawerPanel({
         maxWidth: maxWidth as CSSProperties['maxWidth'],
         overflow: 'hidden',
         pointerEvents: 'auto',
-        backgroundColor: '#ffffff',
-        transform:
-          context.state.phase === 'presented'
-            ? 'translateX(0)'
-            : `translateX(${side === 'left' ? '-100%' : '100%'})`,
-        transition: `transform ${context.exitMs}ms ease`,
         ...flattenToCss(style),
       }}
     >

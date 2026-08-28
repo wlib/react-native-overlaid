@@ -130,6 +130,7 @@ function PopoverContent({
   return (
     <AnchoredContainer
       {...(className !== undefined ? { className } : {})}
+      unstyled={unstyled}
       style={[
         unstyled ? undefined : defaults.popoverSurface,
         style as StyleProp<ViewStyle>,

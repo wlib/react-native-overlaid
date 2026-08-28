@@ -11,6 +11,8 @@ export type DialogSurfaceProps = {
   children: ReactNode
   className?: string | undefined
   style?: CrossPlatformStyle | undefined
+  /** Web-only styling marker, retained on the platform pair. */
+  unstyled?: boolean | undefined
   a11y: SurfaceA11yProps
 }
 

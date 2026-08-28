@@ -2,8 +2,10 @@
 
 // WEB AnchoredContainer.
 // Interprets: mounted state -> Popover API top layer (or a portal fallback),
-// anchored style -> viewport placement, phase -> opacity.
-// Reports: real browser toggle state and first positioned layout.
+// anchored style -> viewport placement, phase -> data-overlaid-state (the
+// layered stylesheet runs the reveal).
+// Reports: real browser toggle state, first positioned layout, and early
+// exit completion when the reveal transition finishes.
 import {
   useCallback,
   useEffect,
@@ -20,11 +22,8 @@ import {
   type CrossPlatformStyle,
 } from '../react/overlayContext'
 import { OVERLAY_ROOT_ID } from '../react/OverlayHost.web'
-
-const SUPPORTS_POPOVER =
-  typeof HTMLElement !== 'undefined' &&
-  typeof HTMLElement.prototype.showPopover === 'function' &&
-  typeof HTMLElement.prototype.hidePopover === 'function'
+import { useExitTransition } from './useExitTransition'
+import { hasWebCapability } from './webCapabilities'
 
 function isPopoverOpen(element: HTMLElement) {
   try {
@@ -34,12 +33,23 @@ function isPopoverOpen(element: HTMLElement) {
   }
 }
 
+/** Implicit anchor, logical focus order, and a11y metadata for free where
+ *  supported; engines that predate the options bag ignore unknown members.
+ *  (lib.dom still types showPopover as zero-arg, hence the cast.) */
+function showPopoverFrom(element: HTMLElement, trigger: unknown): void {
+  ;(element.showPopover as (options?: { source?: HTMLElement }) => void)(
+    trigger instanceof HTMLElement ? { source: trigger } : undefined,
+  )
+}
+
 export type AnchoredContainerProps = {
   children: ReactNode
   className?: string
   style?: CrossPlatformStyle
   role?: OverlayRole
   accessibilityLabel?: string
+  /** Renders data-overlaid-unstyled so the defaults layer stands down. */
+  unstyled?: boolean | undefined
   /** Web portals preserve source context without an explicit bridge. */
   contextBridge?: unknown
 }
@@ -50,12 +60,23 @@ export function AnchoredContainer({
   style,
   role,
   accessibilityLabel,
+  unstyled,
 }: AnchoredContainerProps) {
   const context = useAnchoredOverlayContext()
   const elementRef = useRef<HTMLDivElement | null>(null)
   const readyReported = useRef(false)
-  const { state, signals, actions, panelId, refs, behavior, anchored, exitMs } =
-    context
+  const {
+    state,
+    signals,
+    actions,
+    panelId,
+    refs,
+    behavior,
+    anchored,
+    exitMs,
+    kind,
+  } = context
+  const supportsPopover = hasWebCapability('popover')
 
   const composeRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -65,9 +86,11 @@ export function AnchoredContainer({
     [refs],
   )
 
+  useExitTransition()
+
   useLayoutEffect(() => {
-    if (!SUPPORTS_POPOVER && state.isMounted) signals.onHostShown()
-  }, [signals, state.isMounted])
+    if (!supportsPopover && state.isMounted) signals.onHostShown()
+  }, [signals, state.isMounted, supportsPopover])
 
   useEffect(() => {
     if (!state.isMounted) readyReported.current = false
@@ -75,15 +98,18 @@ export function AnchoredContainer({
 
   useEffect(() => {
     const element = elementRef.current
-    if (!element || !SUPPORTS_POPOVER) return
+    if (!element || !supportsPopover) return
     try {
-      if (state.isMounted && !isPopoverOpen(element)) element.showPopover()
-      else if (!state.isMounted && isPopoverOpen(element)) element.hidePopover()
+      if (state.isMounted && !isPopoverOpen(element)) {
+        showPopoverFrom(element, refs.trigger.current)
+      } else if (!state.isMounted && isPopoverOpen(element)) {
+        element.hidePopover()
+      }
     } catch {
       // Browser light-dismiss and StrictMode can race this effect. The
       // toggle listener below is the source of truth after the operation.
     }
-  }, [state.isMounted])
+  }, [refs.trigger, state.isMounted, supportsPopover])
 
   // Close while still connected, then restore focus if it remained inside.
   useLayoutEffect(() => {
@@ -93,7 +119,7 @@ export function AnchoredContainer({
       const focusWasInside =
         document.activeElement instanceof Element &&
         element.contains(document.activeElement)
-      if (SUPPORTS_POPOVER && isPopoverOpen(element)) {
+      if (supportsPopover && isPopoverOpen(element)) {
         try {
           element.hidePopover()
         } catch {
@@ -105,11 +131,11 @@ export function AnchoredContainer({
         if (trigger instanceof HTMLElement) trigger.focus()
       }
     }
-  }, [refs.trigger])
+  }, [refs.trigger, supportsPopover])
 
   useEffect(() => {
     const element = elementRef.current
-    if (!element || !SUPPORTS_POPOVER) return
+    if (!element || !supportsPopover) return
 
     const onToggle = (event: Event) => {
       const next = (event as ToggleEvent).newState
@@ -127,7 +153,7 @@ export function AnchoredContainer({
       const dismissed = actions.requestDismiss('escape')
       if (!dismissed && element.isConnected) {
         try {
-          element.showPopover()
+          showPopoverFrom(element, refs.trigger.current)
         } catch {
           // Removal or another top-layer operation won the race.
         }
@@ -135,7 +161,7 @@ export function AnchoredContainer({
     }
     element.addEventListener('toggle', onToggle)
     return () => element.removeEventListener('toggle', onToggle)
-  }, [actions, signals, state.isOpen])
+  }, [actions, refs.trigger, signals, state.isOpen, supportsPopover])
 
   useEffect(() => {
     if (readyReported.current || !state.isMounted || !anchored.isPositioned) {
@@ -145,26 +171,27 @@ export function AnchoredContainer({
     signals.onLayoutReady()
   }, [anchored.isPositioned, signals, state.isMounted])
 
-  const reveal: CSSProperties = {
-    opacity: state.isPresented ? 1 : 0,
-    transition: `opacity ${exitMs}ms ease`,
-  }
   const panel = (
     <div
       ref={composeRef}
       id={panelId}
       data-overlaid-popover=""
+      data-overlaid-kind={kind}
+      data-overlaid-part="surface"
+      data-overlaid-state={state.isPresented ? 'open' : 'closed'}
+      data-overlaid-phase={state.phase}
       data-overlaid-reveal=""
+      {...(unstyled ? { 'data-overlaid-unstyled': '' } : {})}
       role={role}
       aria-label={accessibilityLabel}
       className={className}
       style={{
-        ...(!SUPPORTS_POPOVER ? { zIndex: 9999 } : undefined),
+        ['--overlaid-duration' as string]: `${exitMs}ms`,
+        ...(!supportsPopover ? { zIndex: 9999 } : undefined),
         ...(anchored.panelStyle as CSSProperties),
-        ...reveal,
         ...flattenToCss(style),
       }}
-      {...(SUPPORTS_POPOVER
+      {...(supportsPopover
         ? { popover: behavior === 'hint' ? 'hint' : 'manual' }
         : {})}
     >
@@ -172,7 +199,7 @@ export function AnchoredContainer({
     </div>
   )
 
-  if (SUPPORTS_POPOVER) return panel
+  if (supportsPopover) return panel
   if (!state.isMounted || typeof document === 'undefined') return null
 
   const target = document.getElementById(OVERLAY_ROOT_ID)
