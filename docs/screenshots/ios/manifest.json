@@ -1,0 +1,406 @@
+{
+  "platform": "ios",
+  "bundleId": "dev.overlaid.example",
+  "shots": [
+    {
+      "scenario": "gallery",
+      "state": "home",
+      "file": "gallery-home.png"
+    },
+    {
+      "scenario": "dialog-basic",
+      "state": "closed",
+      "file": "dialog-basic--closed.png"
+    },
+    {
+      "scenario": "dialog-basic",
+      "state": "open",
+      "file": "dialog-basic--open.png"
+    },
+    {
+      "scenario": "dialog-non-dismissable",
+      "state": "closed",
+      "file": "dialog-non-dismissable--closed.png"
+    },
+    {
+      "scenario": "dialog-non-dismissable",
+      "state": "open",
+      "file": "dialog-non-dismissable--open.png"
+    },
+    {
+      "scenario": "dialog-scrollable",
+      "state": "closed",
+      "file": "dialog-scrollable--closed.png"
+    },
+    {
+      "scenario": "dialog-scrollable",
+      "state": "open",
+      "file": "dialog-scrollable--open.png"
+    },
+    {
+      "scenario": "dialog-styled",
+      "state": "closed",
+      "file": "dialog-styled--closed.png"
+    },
+    {
+      "scenario": "dialog-styled",
+      "state": "open",
+      "file": "dialog-styled--open.png"
+    },
+    {
+      "scenario": "dialog-compound",
+      "state": "closed",
+      "file": "dialog-compound--closed.png"
+    },
+    {
+      "scenario": "dialog-compound",
+      "state": "open",
+      "file": "dialog-compound--open.png"
+    },
+    {
+      "scenario": "sheet-content-sized",
+      "state": "closed",
+      "file": "sheet-content-sized--closed.png"
+    },
+    {
+      "scenario": "sheet-content-sized",
+      "state": "open",
+      "file": "sheet-content-sized--open.png"
+    },
+    {
+      "scenario": "sheet-three-detents",
+      "state": "closed",
+      "file": "sheet-three-detents--closed.png"
+    },
+    {
+      "scenario": "sheet-three-detents",
+      "state": "open",
+      "file": "sheet-three-detents--open.png"
+    },
+    {
+      "scenario": "sheet-scrolling",
+      "state": "closed",
+      "file": "sheet-scrolling--closed.png"
+    },
+    {
+      "scenario": "sheet-scrolling",
+      "state": "open",
+      "file": "sheet-scrolling--open.png"
+    },
+    {
+      "scenario": "sheet-non-dismissable",
+      "state": "closed",
+      "file": "sheet-non-dismissable--closed.png"
+    },
+    {
+      "scenario": "sheet-non-dismissable",
+      "state": "open",
+      "file": "sheet-non-dismissable--open.png"
+    },
+    {
+      "scenario": "sheet-no-scrim",
+      "state": "closed",
+      "file": "sheet-no-scrim--closed.png"
+    },
+    {
+      "scenario": "sheet-no-scrim",
+      "state": "open",
+      "file": "sheet-no-scrim--open.png"
+    },
+    {
+      "scenario": "sheet-styled",
+      "state": "closed",
+      "file": "sheet-styled--closed.png"
+    },
+    {
+      "scenario": "sheet-styled",
+      "state": "open",
+      "file": "sheet-styled--open.png"
+    },
+    {
+      "scenario": "drawer-right",
+      "state": "closed",
+      "file": "drawer-right--closed.png"
+    },
+    {
+      "scenario": "drawer-right",
+      "state": "open",
+      "file": "drawer-right--open.png"
+    },
+    {
+      "scenario": "drawer-left",
+      "state": "closed",
+      "file": "drawer-left--closed.png"
+    },
+    {
+      "scenario": "drawer-left",
+      "state": "open",
+      "file": "drawer-left--open.png"
+    },
+    {
+      "scenario": "drawer-fixed-width",
+      "state": "closed",
+      "file": "drawer-fixed-width--closed.png"
+    },
+    {
+      "scenario": "drawer-fixed-width",
+      "state": "open",
+      "file": "drawer-fixed-width--open.png"
+    },
+    {
+      "scenario": "drawer-non-dismissable",
+      "state": "closed",
+      "file": "drawer-non-dismissable--closed.png"
+    },
+    {
+      "scenario": "drawer-non-dismissable",
+      "state": "open",
+      "file": "drawer-non-dismissable--open.png"
+    },
+    {
+      "scenario": "drawer-no-backdrop",
+      "state": "closed",
+      "file": "drawer-no-backdrop--closed.png"
+    },
+    {
+      "scenario": "drawer-no-backdrop",
+      "state": "open",
+      "file": "drawer-no-backdrop--open.png"
+    },
+    {
+      "scenario": "drawer-styled",
+      "state": "closed",
+      "file": "drawer-styled--closed.png"
+    },
+    {
+      "scenario": "drawer-styled",
+      "state": "open",
+      "file": "drawer-styled--open.png"
+    },
+    {
+      "scenario": "popover-basic",
+      "state": "closed",
+      "file": "popover-basic--closed.png"
+    },
+    {
+      "scenario": "popover-displacement",
+      "state": "closed",
+      "file": "popover-displacement--closed.png"
+    },
+    {
+      "scenario": "popover-outside-press",
+      "state": "closed",
+      "file": "popover-outside-press--closed.png"
+    },
+    {
+      "scenario": "popover-placements",
+      "state": "closed",
+      "file": "popover-placements--closed.png"
+    },
+    {
+      "scenario": "popover-non-dismissable",
+      "state": "closed",
+      "file": "popover-non-dismissable--closed.png"
+    },
+    {
+      "scenario": "popover-close-on-scroll",
+      "state": "closed",
+      "file": "popover-close-on-scroll--closed.png"
+    },
+    {
+      "scenario": "popover-scroll-inside",
+      "state": "closed",
+      "file": "popover-scroll-inside--closed.png"
+    },
+    {
+      "scenario": "popover-forced-displacement",
+      "state": "closed",
+      "file": "popover-forced-displacement--closed.png"
+    },
+    {
+      "scenario": "tooltip-hover-focus",
+      "state": "closed",
+      "file": "tooltip-hover-focus--closed.png"
+    },
+    {
+      "scenario": "tooltip-escape",
+      "state": "closed",
+      "file": "tooltip-escape--closed.png"
+    },
+    {
+      "scenario": "tooltip-hint-vs-auto",
+      "state": "closed",
+      "file": "tooltip-hint-vs-auto--closed.png"
+    },
+    {
+      "scenario": "tooltip-boundary",
+      "state": "closed",
+      "file": "tooltip-boundary--closed.png"
+    },
+    {
+      "scenario": "tooltip-render-prop",
+      "state": "closed",
+      "file": "tooltip-render-prop--closed.png"
+    },
+    {
+      "scenario": "stacking-popover-in-dialog",
+      "state": "closed",
+      "file": "stacking-popover-in-dialog--closed.png"
+    },
+    {
+      "scenario": "stacking-popover-in-dialog",
+      "state": "open",
+      "file": "stacking-popover-in-dialog--open.png"
+    },
+    {
+      "scenario": "stacking-dialog-above-drawer",
+      "state": "closed",
+      "file": "stacking-dialog-above-drawer--closed.png"
+    },
+    {
+      "scenario": "stacking-dialog-above-drawer",
+      "state": "open",
+      "file": "stacking-dialog-above-drawer--open.png"
+    },
+    {
+      "scenario": "stacking-tooltip-in-sheet",
+      "state": "closed",
+      "file": "stacking-tooltip-in-sheet--closed.png"
+    },
+    {
+      "scenario": "stacking-tooltip-in-sheet",
+      "state": "open",
+      "file": "stacking-tooltip-in-sheet--open.png"
+    },
+    {
+      "scenario": "stacking-kitchen-sink",
+      "state": "closed",
+      "file": "stacking-kitchen-sink--closed.png"
+    },
+    {
+      "scenario": "stacking-kitchen-sink",
+      "state": "open",
+      "file": "stacking-kitchen-sink--open.png"
+    },
+    {
+      "scenario": "popover-basic",
+      "state": "open",
+      "file": "popover-basic--open.png",
+      "interactive": true
+    },
+    {
+      "scenario": "popover-displacement",
+      "state": "first-open",
+      "file": "popover-displacement--first-open.png",
+      "interactive": true
+    },
+    {
+      "scenario": "popover-displacement",
+      "state": "second-displaces-first",
+      "file": "popover-displacement--second-displaces-first.png",
+      "interactive": true
+    },
+    {
+      "scenario": "popover-outside-press",
+      "state": "open",
+      "file": "popover-outside-press--open.png",
+      "interactive": true
+    },
+    {
+      "scenario": "popover-placements",
+      "state": "top",
+      "file": "popover-placements--top.png",
+      "interactive": true
+    },
+    {
+      "scenario": "popover-placements",
+      "state": "bottom",
+      "file": "popover-placements--bottom.png",
+      "interactive": true
+    },
+    {
+      "scenario": "popover-placements",
+      "state": "left",
+      "file": "popover-placements--left.png",
+      "interactive": true
+    },
+    {
+      "scenario": "popover-placements",
+      "state": "right",
+      "file": "popover-placements--right.png",
+      "interactive": true
+    },
+    {
+      "scenario": "popover-non-dismissable",
+      "state": "open",
+      "file": "popover-non-dismissable--open.png",
+      "interactive": true
+    },
+    {
+      "scenario": "popover-scroll-inside",
+      "state": "open",
+      "file": "popover-scroll-inside--open.png",
+      "interactive": true
+    },
+    {
+      "scenario": "popover-forced-displacement",
+      "state": "sticky-open",
+      "file": "popover-forced-displacement--sticky-open.png",
+      "interactive": true
+    },
+    {
+      "scenario": "tooltip-hover-focus",
+      "state": "open",
+      "file": "tooltip-hover-focus--open.png",
+      "interactive": true
+    },
+    {
+      "scenario": "tooltip-escape",
+      "state": "open",
+      "file": "tooltip-escape--open.png",
+      "interactive": true
+    },
+    {
+      "scenario": "tooltip-hint-vs-auto",
+      "state": "popover-plus-tooltip",
+      "file": "tooltip-hint-vs-auto--popover-plus-tooltip.png",
+      "interactive": true
+    },
+    {
+      "scenario": "tooltip-boundary",
+      "state": "open",
+      "file": "tooltip-boundary--open.png",
+      "interactive": true
+    },
+    {
+      "scenario": "tooltip-render-prop",
+      "state": "open",
+      "file": "tooltip-render-prop--open.png",
+      "interactive": true
+    },
+    {
+      "scenario": "stacking-popover-in-dialog",
+      "state": "popover-in-dialog",
+      "file": "stacking-popover-in-dialog--popover-in-dialog.png",
+      "interactive": true
+    },
+    {
+      "scenario": "stacking-tooltip-in-sheet",
+      "state": "tooltip-in-sheet",
+      "file": "stacking-tooltip-in-sheet--tooltip-in-sheet.png",
+      "interactive": true
+    },
+    {
+      "scenario": "stacking-kitchen-sink",
+      "state": "two-deep",
+      "file": "stacking-kitchen-sink--two-deep.png",
+      "interactive": true
+    },
+    {
+      "scenario": "stacking-kitchen-sink",
+      "state": "three-deep",
+      "file": "stacking-kitchen-sink--three-deep.png",
+      "interactive": true
+    }
+  ]
+}

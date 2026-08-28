@@ -1,0 +1,590 @@
+{
+  "viewport": {
+    "width": 860,
+    "height": 640
+  },
+  "platform": "web",
+  "shots": [
+    {
+      "story": "overlays-dialog--basic",
+      "title": "Overlays/Dialog",
+      "name": "Basic",
+      "state": "closed",
+      "file": "overlays-dialog--basic--closed.png"
+    },
+    {
+      "story": "overlays-dialog--basic",
+      "title": "Overlays/Dialog",
+      "name": "Basic",
+      "state": "open",
+      "file": "overlays-dialog--basic--open.png"
+    },
+    {
+      "story": "overlays-dialog--non-dismissable",
+      "title": "Overlays/Dialog",
+      "name": "Non Dismissable",
+      "state": "closed",
+      "file": "overlays-dialog--non-dismissable--closed.png"
+    },
+    {
+      "story": "overlays-dialog--non-dismissable",
+      "title": "Overlays/Dialog",
+      "name": "Non Dismissable",
+      "state": "open",
+      "file": "overlays-dialog--non-dismissable--open.png"
+    },
+    {
+      "story": "overlays-dialog--scrollable-content",
+      "title": "Overlays/Dialog",
+      "name": "Scrollable Content",
+      "state": "closed",
+      "file": "overlays-dialog--scrollable-content--closed.png"
+    },
+    {
+      "story": "overlays-dialog--scrollable-content",
+      "title": "Overlays/Dialog",
+      "name": "Scrollable Content",
+      "state": "open",
+      "file": "overlays-dialog--scrollable-content--open.png"
+    },
+    {
+      "story": "overlays-dialog--styled-surface-and-backdrop",
+      "title": "Overlays/Dialog",
+      "name": "Styled Surface And Backdrop",
+      "state": "closed",
+      "file": "overlays-dialog--styled-surface-and-backdrop--closed.png"
+    },
+    {
+      "story": "overlays-dialog--styled-surface-and-backdrop",
+      "title": "Overlays/Dialog",
+      "name": "Styled Surface And Backdrop",
+      "state": "open",
+      "file": "overlays-dialog--styled-surface-and-backdrop--open.png"
+    },
+    {
+      "story": "overlays-dialog--compound-parts",
+      "title": "Overlays/Dialog",
+      "name": "Compound Parts",
+      "state": "closed",
+      "file": "overlays-dialog--compound-parts--closed.png"
+    },
+    {
+      "story": "overlays-dialog--compound-parts",
+      "title": "Overlays/Dialog",
+      "name": "Compound Parts",
+      "state": "open",
+      "file": "overlays-dialog--compound-parts--open.png"
+    },
+    {
+      "story": "overlays-drawer--right-side",
+      "title": "Overlays/Drawer",
+      "name": "Right Side",
+      "state": "closed",
+      "file": "overlays-drawer--right-side--closed.png"
+    },
+    {
+      "story": "overlays-drawer--right-side",
+      "title": "Overlays/Drawer",
+      "name": "Right Side",
+      "state": "open",
+      "file": "overlays-drawer--right-side--open.png"
+    },
+    {
+      "story": "overlays-drawer--left-side",
+      "title": "Overlays/Drawer",
+      "name": "Left Side",
+      "state": "closed",
+      "file": "overlays-drawer--left-side--closed.png"
+    },
+    {
+      "story": "overlays-drawer--left-side",
+      "title": "Overlays/Drawer",
+      "name": "Left Side",
+      "state": "open",
+      "file": "overlays-drawer--left-side--open.png"
+    },
+    {
+      "story": "overlays-drawer--fixed-width-scrolling",
+      "title": "Overlays/Drawer",
+      "name": "Fixed Width Scrolling",
+      "state": "closed",
+      "file": "overlays-drawer--fixed-width-scrolling--closed.png"
+    },
+    {
+      "story": "overlays-drawer--fixed-width-scrolling",
+      "title": "Overlays/Drawer",
+      "name": "Fixed Width Scrolling",
+      "state": "open",
+      "file": "overlays-drawer--fixed-width-scrolling--open.png"
+    },
+    {
+      "story": "overlays-drawer--non-dismissable",
+      "title": "Overlays/Drawer",
+      "name": "Non Dismissable",
+      "state": "closed",
+      "file": "overlays-drawer--non-dismissable--closed.png"
+    },
+    {
+      "story": "overlays-drawer--non-dismissable",
+      "title": "Overlays/Drawer",
+      "name": "Non Dismissable",
+      "state": "open",
+      "file": "overlays-drawer--non-dismissable--open.png"
+    },
+    {
+      "story": "overlays-drawer--no-backdrop",
+      "title": "Overlays/Drawer",
+      "name": "No Backdrop",
+      "state": "closed",
+      "file": "overlays-drawer--no-backdrop--closed.png"
+    },
+    {
+      "story": "overlays-drawer--no-backdrop",
+      "title": "Overlays/Drawer",
+      "name": "No Backdrop",
+      "state": "open",
+      "file": "overlays-drawer--no-backdrop--open.png"
+    },
+    {
+      "story": "overlays-drawer--styled-surface",
+      "title": "Overlays/Drawer",
+      "name": "Styled Surface",
+      "state": "closed",
+      "file": "overlays-drawer--styled-surface--closed.png"
+    },
+    {
+      "story": "overlays-drawer--styled-surface",
+      "title": "Overlays/Drawer",
+      "name": "Styled Surface",
+      "state": "open",
+      "file": "overlays-drawer--styled-surface--open.png"
+    },
+    {
+      "story": "overlays-popover--basic",
+      "title": "Overlays/Popover",
+      "name": "Basic",
+      "state": "closed",
+      "file": "overlays-popover--basic--closed.png"
+    },
+    {
+      "story": "overlays-popover--basic",
+      "title": "Overlays/Popover",
+      "name": "Basic",
+      "state": "open",
+      "file": "overlays-popover--basic--open.png"
+    },
+    {
+      "story": "overlays-popover--displaces-other-popover",
+      "title": "Overlays/Popover",
+      "name": "Opening one popover closes the other (auto displaces auto)",
+      "state": "closed",
+      "file": "overlays-popover--displaces-other-popover--closed.png"
+    },
+    {
+      "story": "overlays-popover--displaces-other-popover",
+      "title": "Overlays/Popover",
+      "name": "Opening one popover closes the other (auto displaces auto)",
+      "state": "first-open",
+      "file": "overlays-popover--displaces-other-popover--first-open.png"
+    },
+    {
+      "story": "overlays-popover--displaces-other-popover",
+      "title": "Overlays/Popover",
+      "name": "Opening one popover closes the other (auto displaces auto)",
+      "state": "second-displaces-first",
+      "file": "overlays-popover--displaces-other-popover--second-displaces-first.png"
+    },
+    {
+      "story": "overlays-popover--outside-press-dismisses",
+      "title": "Overlays/Popover",
+      "name": "Outside Press Dismisses",
+      "state": "closed",
+      "file": "overlays-popover--outside-press-dismisses--closed.png"
+    },
+    {
+      "story": "overlays-popover--outside-press-dismisses",
+      "title": "Overlays/Popover",
+      "name": "Outside Press Dismisses",
+      "state": "open",
+      "file": "overlays-popover--outside-press-dismisses--open.png"
+    },
+    {
+      "story": "overlays-popover--placements",
+      "title": "Overlays/Popover",
+      "name": "Placements",
+      "state": "closed",
+      "file": "overlays-popover--placements--closed.png"
+    },
+    {
+      "story": "overlays-popover--placements",
+      "title": "Overlays/Popover",
+      "name": "Placements",
+      "state": "top",
+      "file": "overlays-popover--placements--top.png"
+    },
+    {
+      "story": "overlays-popover--placements",
+      "title": "Overlays/Popover",
+      "name": "Placements",
+      "state": "bottom",
+      "file": "overlays-popover--placements--bottom.png"
+    },
+    {
+      "story": "overlays-popover--placements",
+      "title": "Overlays/Popover",
+      "name": "Placements",
+      "state": "left",
+      "file": "overlays-popover--placements--left.png"
+    },
+    {
+      "story": "overlays-popover--placements",
+      "title": "Overlays/Popover",
+      "name": "Placements",
+      "state": "right",
+      "file": "overlays-popover--placements--right.png"
+    },
+    {
+      "story": "overlays-popover--non-dismissable",
+      "title": "Overlays/Popover",
+      "name": "Non Dismissable",
+      "state": "closed",
+      "file": "overlays-popover--non-dismissable--closed.png"
+    },
+    {
+      "story": "overlays-popover--non-dismissable",
+      "title": "Overlays/Popover",
+      "name": "Non Dismissable",
+      "state": "open",
+      "file": "overlays-popover--non-dismissable--open.png"
+    },
+    {
+      "story": "overlays-popover--close-on-scroll",
+      "title": "Overlays/Popover",
+      "name": "closeOnScroll (default) — page scroll dismisses",
+      "state": "closed",
+      "file": "overlays-popover--close-on-scroll--closed.png"
+    },
+    {
+      "story": "overlays-popover--close-on-scroll",
+      "title": "Overlays/Popover",
+      "name": "closeOnScroll (default) — page scroll dismisses",
+      "state": "open",
+      "file": "overlays-popover--close-on-scroll--open.png"
+    },
+    {
+      "story": "overlays-popover--close-on-scroll",
+      "title": "Overlays/Popover",
+      "name": "closeOnScroll (default) — page scroll dismisses",
+      "state": "dismissed-after-scroll",
+      "file": "overlays-popover--close-on-scroll--dismissed-after-scroll.png"
+    },
+    {
+      "story": "overlays-popover--scroll-inside-panel-does-not-dismiss",
+      "title": "Overlays/Popover",
+      "name": "closeOnScroll exemption — scrolling inside the panel",
+      "state": "closed",
+      "file": "overlays-popover--scroll-inside-panel-does-not-dismiss--closed.png"
+    },
+    {
+      "story": "overlays-popover--scroll-inside-panel-does-not-dismiss",
+      "title": "Overlays/Popover",
+      "name": "closeOnScroll exemption — scrolling inside the panel",
+      "state": "open",
+      "file": "overlays-popover--scroll-inside-panel-does-not-dismiss--open.png"
+    },
+    {
+      "story": "overlays-popover--displacement-vs-non-dismissable",
+      "title": "Overlays/Popover",
+      "name": "Displacement force-closes dismissable=false; veto survives",
+      "state": "closed",
+      "file": "overlays-popover--displacement-vs-non-dismissable--closed.png"
+    },
+    {
+      "story": "overlays-popover--displacement-vs-non-dismissable",
+      "title": "Overlays/Popover",
+      "name": "Displacement force-closes dismissable=false; veto survives",
+      "state": "sticky-open",
+      "file": "overlays-popover--displacement-vs-non-dismissable--sticky-open.png"
+    },
+    {
+      "story": "overlays-popover--displacement-vs-non-dismissable",
+      "title": "Overlays/Popover",
+      "name": "Displacement force-closes dismissable=false; veto survives",
+      "state": "veto-survives-displacement",
+      "file": "overlays-popover--displacement-vs-non-dismissable--veto-survives-displacement.png"
+    },
+    {
+      "story": "overlays-sheet--content-sized",
+      "title": "Overlays/Sheet",
+      "name": "Content Sized",
+      "state": "closed",
+      "file": "overlays-sheet--content-sized--closed.png"
+    },
+    {
+      "story": "overlays-sheet--content-sized",
+      "title": "Overlays/Sheet",
+      "name": "Content Sized",
+      "state": "open",
+      "file": "overlays-sheet--content-sized--open.png"
+    },
+    {
+      "story": "overlays-sheet--three-detents",
+      "title": "Overlays/Sheet",
+      "name": "Three Detents",
+      "state": "closed",
+      "file": "overlays-sheet--three-detents--closed.png"
+    },
+    {
+      "story": "overlays-sheet--three-detents",
+      "title": "Overlays/Sheet",
+      "name": "Three Detents",
+      "state": "middle-detent",
+      "file": "overlays-sheet--three-detents--middle-detent.png"
+    },
+    {
+      "story": "overlays-sheet--three-detents",
+      "title": "Overlays/Sheet",
+      "name": "Three Detents",
+      "state": "low-detent",
+      "file": "overlays-sheet--three-detents--low-detent.png"
+    },
+    {
+      "story": "overlays-sheet--scrolling-content",
+      "title": "Overlays/Sheet",
+      "name": "Scroll inside vs drag-to-dismiss arbitration",
+      "state": "closed",
+      "file": "overlays-sheet--scrolling-content--closed.png"
+    },
+    {
+      "story": "overlays-sheet--scrolling-content",
+      "title": "Overlays/Sheet",
+      "name": "Scroll inside vs drag-to-dismiss arbitration",
+      "state": "open",
+      "file": "overlays-sheet--scrolling-content--open.png"
+    },
+    {
+      "story": "overlays-sheet--non-dismissable",
+      "title": "Overlays/Sheet",
+      "name": "Non Dismissable",
+      "state": "closed",
+      "file": "overlays-sheet--non-dismissable--closed.png"
+    },
+    {
+      "story": "overlays-sheet--non-dismissable",
+      "title": "Overlays/Sheet",
+      "name": "Non Dismissable",
+      "state": "open",
+      "file": "overlays-sheet--non-dismissable--open.png"
+    },
+    {
+      "story": "overlays-sheet--no-scrim",
+      "title": "Overlays/Sheet",
+      "name": "No Scrim",
+      "state": "closed",
+      "file": "overlays-sheet--no-scrim--closed.png"
+    },
+    {
+      "story": "overlays-sheet--no-scrim",
+      "title": "Overlays/Sheet",
+      "name": "No Scrim",
+      "state": "open",
+      "file": "overlays-sheet--no-scrim--open.png"
+    },
+    {
+      "story": "overlays-sheet--styled-and-narrow",
+      "title": "Overlays/Sheet",
+      "name": "Styled And Narrow",
+      "state": "closed",
+      "file": "overlays-sheet--styled-and-narrow--closed.png"
+    },
+    {
+      "story": "overlays-sheet--styled-and-narrow",
+      "title": "Overlays/Sheet",
+      "name": "Styled And Narrow",
+      "state": "open",
+      "file": "overlays-sheet--styled-and-narrow--open.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--popover-inside-dialog",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Popover Inside Dialog",
+      "state": "closed",
+      "file": "overlays-stacking-nesting--popover-inside-dialog--closed.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--popover-inside-dialog",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Popover Inside Dialog",
+      "state": "dialog-open",
+      "file": "overlays-stacking-nesting--popover-inside-dialog--dialog-open.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--popover-inside-dialog",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Popover Inside Dialog",
+      "state": "popover-in-dialog",
+      "file": "overlays-stacking-nesting--popover-inside-dialog--popover-in-dialog.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--click-inside-dialog-spares-it",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Press inside the dialog closes only the popover",
+      "state": "closed",
+      "file": "overlays-stacking-nesting--click-inside-dialog-spares-it--closed.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--click-inside-dialog-spares-it",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Press inside the dialog closes only the popover",
+      "state": "popover-in-dialog",
+      "file": "overlays-stacking-nesting--click-inside-dialog-spares-it--popover-in-dialog.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--click-inside-dialog-spares-it",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Press inside the dialog closes only the popover",
+      "state": "popover-dismissed-dialog-spared",
+      "file": "overlays-stacking-nesting--click-inside-dialog-spares-it--popover-dismissed-dialog-spared.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--dialog-above-drawer",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Dialog Above Drawer",
+      "state": "closed",
+      "file": "overlays-stacking-nesting--dialog-above-drawer--closed.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--dialog-above-drawer",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Dialog Above Drawer",
+      "state": "drawer-open",
+      "file": "overlays-stacking-nesting--dialog-above-drawer--drawer-open.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--dialog-above-drawer",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Dialog Above Drawer",
+      "state": "dialog-above-drawer",
+      "file": "overlays-stacking-nesting--dialog-above-drawer--dialog-above-drawer.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--tooltip-inside-sheet",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Tooltip Inside Sheet",
+      "state": "closed",
+      "file": "overlays-stacking-nesting--tooltip-inside-sheet--closed.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--tooltip-inside-sheet",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Tooltip Inside Sheet",
+      "state": "sheet-open",
+      "file": "overlays-stacking-nesting--tooltip-inside-sheet--sheet-open.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--tooltip-inside-sheet",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Tooltip Inside Sheet",
+      "state": "tooltip-in-sheet",
+      "file": "overlays-stacking-nesting--tooltip-inside-sheet--tooltip-in-sheet.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--kitchen-sink-three-deep",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Kitchen sink: dialog → popover → tooltip",
+      "state": "closed",
+      "file": "overlays-stacking-nesting--kitchen-sink-three-deep--closed.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--kitchen-sink-three-deep",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Kitchen sink: dialog → popover → tooltip",
+      "state": "dialog-open",
+      "file": "overlays-stacking-nesting--kitchen-sink-three-deep--dialog-open.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--kitchen-sink-three-deep",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Kitchen sink: dialog → popover → tooltip",
+      "state": "two-deep",
+      "file": "overlays-stacking-nesting--kitchen-sink-three-deep--two-deep.png"
+    },
+    {
+      "story": "overlays-stacking-nesting--kitchen-sink-three-deep",
+      "title": "Overlays/Stacking & Nesting",
+      "name": "Kitchen sink: dialog → popover → tooltip",
+      "state": "three-deep",
+      "file": "overlays-stacking-nesting--kitchen-sink-three-deep--three-deep.png"
+    },
+    {
+      "story": "overlays-tooltip--hover-and-focus",
+      "title": "Overlays/Tooltip",
+      "name": "Hover And Focus",
+      "state": "closed",
+      "file": "overlays-tooltip--hover-and-focus--closed.png"
+    },
+    {
+      "story": "overlays-tooltip--hover-and-focus",
+      "title": "Overlays/Tooltip",
+      "name": "Hover And Focus",
+      "state": "open",
+      "file": "overlays-tooltip--hover-and-focus--open.png"
+    },
+    {
+      "story": "overlays-tooltip--escape-dismisses-hint",
+      "title": "Overlays/Tooltip",
+      "name": "Escape dismisses (WCAG 1.4.13)",
+      "state": "closed",
+      "file": "overlays-tooltip--escape-dismisses-hint--closed.png"
+    },
+    {
+      "story": "overlays-tooltip--escape-dismisses-hint",
+      "title": "Overlays/Tooltip",
+      "name": "Escape dismisses (WCAG 1.4.13)",
+      "state": "open",
+      "file": "overlays-tooltip--escape-dismisses-hint--open.png"
+    },
+    {
+      "story": "overlays-tooltip--hint-does-not-displace-auto",
+      "title": "Overlays/Tooltip",
+      "name": "Hovering a tooltip never closes an open popover",
+      "state": "closed",
+      "file": "overlays-tooltip--hint-does-not-displace-auto--closed.png"
+    },
+    {
+      "story": "overlays-tooltip--hint-does-not-displace-auto",
+      "title": "Overlays/Tooltip",
+      "name": "Hovering a tooltip never closes an open popover",
+      "state": "popover-plus-tooltip",
+      "file": "overlays-tooltip--hint-does-not-displace-auto--popover-plus-tooltip.png"
+    },
+    {
+      "story": "overlays-tooltip--with-boundary",
+      "title": "Overlays/Tooltip",
+      "name": "With Boundary",
+      "state": "closed",
+      "file": "overlays-tooltip--with-boundary--closed.png"
+    },
+    {
+      "story": "overlays-tooltip--with-boundary",
+      "title": "Overlays/Tooltip",
+      "name": "With Boundary",
+      "state": "open",
+      "file": "overlays-tooltip--with-boundary--open.png"
+    },
+    {
+      "story": "overlays-tooltip--render-prop-trigger",
+      "title": "Overlays/Tooltip",
+      "name": "Render Prop Trigger",
+      "state": "closed",
+      "file": "overlays-tooltip--render-prop-trigger--closed.png"
+    },
+    {
+      "story": "overlays-tooltip--render-prop-trigger",
+      "title": "Overlays/Tooltip",
+      "name": "Render Prop Trigger",
+      "state": "open",
+      "file": "overlays-tooltip--render-prop-trigger--open.png"
+    }
+  ]
+}

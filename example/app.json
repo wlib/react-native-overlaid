@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "react-native-overlaid-example",
+    "slug": "react-native-overlaid-example",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "scheme": "overlaid-example",
+    "ios": {
+      "bundleIdentifier": "dev.overlaid.example",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "dev.overlaid.example"
+    }
+  }
+}

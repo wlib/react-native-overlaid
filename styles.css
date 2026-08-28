@@ -1,0 +1,74 @@
+/* Import once in a web application. Native platforms do not use this file. */
+
+dialog[data-overlaid-modal] {
+  position: fixed;
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  padding-top: max(16px, env(safe-area-inset-top, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  background: transparent;
+  overflow: visible;
+  color: inherit;
+}
+
+dialog[data-overlaid-modal][open] {
+  display: grid;
+  place-items: center;
+}
+
+dialog[data-overlaid-modal-mode='modeless'] {
+  z-index: 9999;
+}
+
+/* `pointer-events` inherits. A backdrop-free host lets empty-space hits pass
+ * through, while its actual panel remains interactive. */
+dialog[data-overlaid-modal] > * {
+  pointer-events: auto;
+}
+
+dialog[data-overlaid-modal] [data-overlaid-centered-panel] > * {
+  min-height: 0;
+  flex-shrink: 1;
+}
+
+dialog[data-overlaid-has-backdrop='true']::backdrop {
+  background-color: var(--overlaid-backdrop-color, rgb(0 0 0 / 0.3));
+  opacity: 0;
+  transition: opacity var(--overlaid-backdrop-duration, 200ms) ease;
+}
+
+dialog[data-overlaid-has-backdrop='true'][data-overlaid-phase='presented']::backdrop {
+  opacity: var(--overlaid-backdrop-opacity, 1);
+}
+
+dialog[data-overlaid-has-backdrop='false']::backdrop {
+  background: transparent;
+}
+
+/* Remove UA popover chrome at zero specificity so consumer styles win. */
+:where([data-overlaid-popover]) {
+  inset: auto;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: inherit;
+  overflow: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-overlaid-reveal],
+  dialog[data-overlaid-has-backdrop='true']::backdrop {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

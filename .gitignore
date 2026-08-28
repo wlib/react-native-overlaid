@@ -1,0 +1,12 @@
+.DS_Store
+coverage
+lib
+node_modules
+*.tgz
+.package-smoke-*
+storybook-static
+example/.expo
+example/ios
+example/android
+*.log
+example/.overlaid-route.json
