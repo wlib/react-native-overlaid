@@ -39,6 +39,33 @@ describe('layer host execution', () => {
     expect(below).toHaveBeenCalledTimes(1)
   })
 
+  it('reports escape unhandled when a platform-channel entry owns it', () => {
+    // The browser both closes the delegated layer and must see an
+    // unprevented keydown — 'swallowed'/'handled' would preventDefault and
+    // suppress the browser's own close request.
+    const host = createLayerHost('root', null)
+    const managedModal = jest.fn(() => false)
+    const delegated = jest.fn(() => true)
+    host.push(layer('modal', 'modal', managedModal))
+    host.push({ ...layer('delegated', 'auto', delegated), channel: 'platform' })
+
+    expect(host.dispatchEscape()).toBe('unhandled')
+    expect(delegated).not.toHaveBeenCalled()
+    expect(managedModal).not.toHaveBeenCalled()
+  })
+
+  it('never fires a platform-channel entry on outside press', () => {
+    const host = createLayerHost('root', null)
+    const managed = jest.fn(() => true)
+    const delegated = jest.fn(() => true)
+    host.push(layer('managed', 'auto', managed))
+    host.push({ ...layer('delegated', 'auto', delegated), channel: 'platform' })
+
+    expect(host.dispatchOutsidePress({ x: 0, y: 0 }, null)).toBe(true)
+    expect(managed).toHaveBeenCalledWith('outside-press')
+    expect(delegated).not.toHaveBeenCalled()
+  })
+
   it('force-displaces unrelated transient layers', () => {
     const host = createLayerHost('root', null)
     const unrelated = jest.fn(() => true)

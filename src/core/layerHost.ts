@@ -128,6 +128,12 @@ export function createLayerHost(
   const execute = (steps: readonly Step[]): boolean => {
     let handled = false
     for (const step of steps) {
+      // Platform-channel steps are never fired here — the browser closes the
+      // entry and it self-reports (R1: one classification per gesture).
+      if (step.deferToPlatform) {
+        if (step.stopAlways) break
+        continue
+      }
       // Resolve against live membership: earlier callbacks may remove layers.
       const entry = stack.find((candidate) => candidate.id === step.id)
       const accepted = !entry
@@ -145,13 +151,20 @@ export function createLayerHost(
     stack.some((entry) => behaviors[entry.behavior].blocksBelow)
 
   const dispatchEscape = (): DispatchOutcome => {
-    if (execute(planEscape(stack, behaviors))) return 'handled'
+    const steps = planEscape(stack, behaviors)
+    if (execute(steps)) return 'handled'
+    // A deferred step means the platform channel owns this gesture: report
+    // it unhandled so the caller leaves the browser's default action alone
+    // (a prevented keydown would suppress the browser's own close request).
+    if (steps.some((step) => step.deferToPlatform)) return 'unhandled'
     if (hasBlocker()) return 'swallowed'
     return parent?.dispatchEscape() ?? 'unhandled'
   }
 
   const dispatchBackButton = (): DispatchOutcome => {
-    if (execute(planBackButton(stack, behaviors))) return 'handled'
+    const steps = planBackButton(stack, behaviors)
+    if (execute(steps)) return 'handled'
+    if (steps.some((step) => step.deferToPlatform)) return 'unhandled'
     if (hasBlocker()) return 'swallowed'
     return parent?.dispatchBackButton() ?? 'unhandled'
   }

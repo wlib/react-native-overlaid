@@ -13,6 +13,7 @@
 import type { ComponentType } from 'react'
 import {
   BasicDialog,
+  ClosedByDialog,
   CompoundDialog,
   NonDismissableDialog,
   ScrollableDialog,
@@ -28,7 +29,9 @@ import {
 } from './drawer'
 import {
   BasicPopover,
+  BrowserDismissPopover,
   CloseOnScrollPopover,
+  CssAnchorPopover,
   DisplacingPopovers,
   ForcedDisplacementPopovers,
   NonDismissablePopover,
@@ -121,6 +124,15 @@ export const scenarios: Scenario[] = [
       'Dialog.Root/Content/Title/Description/Close — full control over the tree, same kernel underneath.',
     Component: CompoundDialog,
     smokeText: 'Compound API',
+  },
+  {
+    key: 'dialog-closedby',
+    family: 'Dialog',
+    title: "web.dismissal='closedby' (delegated)",
+    description:
+      "Opt-in escape hatch: <dialog closedby='any'> hands escape and backdrop light dismiss to the browser; the kernel mirrors the outcome. Managed behavior on native and wherever closedby is unsupported (Safari).",
+    Component: ClosedByDialog,
+    smokeText: 'Browser-delegated dialog',
   },
 
   // ── Sheet ─────────────────────────────────────────────────────────────
@@ -298,6 +310,23 @@ export const scenarios: Scenario[] = [
       'Opening a new popover force-displaces a dismissable=false popover (force bypasses dismissability), but an onDismissRequest veto is consulted first and survives displacement.',
     Component: ForcedDisplacementPopovers,
     smokeText: 'Sticky panel: displacement still force-closes me',
+  },
+  {
+    key: 'popover-browser-dismissal',
+    family: 'Popover',
+    title: "web.dismissal='browser' (delegated)",
+    description:
+      'Opt-in escape hatch: popover="auto" hands light dismiss, Escape, and auto-stack grouping to the browser; the kernel mirrors the outcome. Managed behavior everywhere the option can\'t hold (native, no Popover API, veto/dismissable).',
+    Component: BrowserDismissPopover,
+    smokeText: 'Delegated panel',
+  },
+  {
+    key: 'popover-css-anchor',
+    family: 'Popover',
+    title: "web.positioning='css-anchor'",
+    description:
+      'Opt-in escape hatch: placement runs on CSS Anchor Positioning (position-area + position-try fallbacks) instead of Floating UI; falls back to Floating UI where unsupported.',
+    Component: CssAnchorPopover,
   },
 
   // ── Tooltip ───────────────────────────────────────────────────────────

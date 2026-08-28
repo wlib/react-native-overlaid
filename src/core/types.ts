@@ -49,10 +49,20 @@ export type Bounds = Readonly<{
 /** Framework-independent ref shape; the core only reads `current`. */
 export type NodeRef = { readonly current: unknown }
 
+/**
+ * Which system owns an entry's dismissal gestures. `managed` (the default)
+ * routes escape/outside-press through the kernel's arbitration planners;
+ * `platform` marks a web instance whose browser runs light dismiss and close
+ * requests itself and self-reports outcomes — the planners must never fire
+ * such an entry a second time for the same gesture.
+ */
+export type DismissalChannel = 'managed' | 'platform'
+
 export interface LayerEntry {
   readonly id: string
   readonly behavior: Behavior
   readonly parentEntryId: string | null
+  readonly channel?: DismissalChannel
   readonly panelRef: NodeRef
   readonly triggerRef: NodeRef
   /** Last synchronous page-space bounds, used by non-DOM outside presses. */

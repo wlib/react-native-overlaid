@@ -55,6 +55,14 @@ export type HostA11yProps = {
   'aria-label'?: string | undefined
 }
 
+/**
+ * Resolved web dismissal ownership for one instance: `managed` (default) is
+ * today's kernel-owned machinery; `delegated` hands light dismiss / close
+ * requests to the browser (`web.dismissal` on the components). Always
+ * `managed` on native and wherever the capability or veto gates refuse.
+ */
+export type WebDismissal = 'managed' | 'delegated'
+
 export type OverlayContextValue = {
   id: string
   kind: OverlayKind
@@ -94,6 +102,8 @@ export type OverlayContextValue = {
     bounds: { current: Bounds | null }
   }
   anchored?: AnchoredPosition | undefined
+  /** Absent means `managed`; see {@link WebDismissal}. */
+  webDismissal?: WebDismissal | undefined
   a11y: {
     trigger: TriggerA11yProps
     surface: SurfaceA11yProps

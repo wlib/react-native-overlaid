@@ -9,6 +9,14 @@ export type AnchoredSpec = {
   offset?: number | undefined
   /** Optional flip/shift boundary. The window/viewport is used by default. */
   boundaryRef?: RefObject<unknown> | undefined
+  /**
+   * Web-only position engine (`web.positioning` on Popover/Tooltip).
+   * `'floating'` (default) is Floating UI; `'css-anchor'` maps placement to
+   * CSS Anchor Positioning with `position-try` fallbacks and falls back to
+   * `'floating'` when unsupported or when `boundaryRef` is set. Ignored on
+   * native.
+   */
+  positioning?: 'floating' | 'css-anchor' | undefined
 }
 
 export type AnchoredPositionOptions = AnchoredSpec & {
@@ -35,6 +43,12 @@ export function insetClippingRect(rect: Rect, insets?: OverlayInsets): Rect {
 export type AnchoredPosition = {
   panelStyle: Record<string, unknown>
   isPositioned: boolean
+  /**
+   * Extra attributes the anchored chrome must render on the panel — the
+   * css-anchor engine keys its stylesheet rules off these
+   * (`data-overlaid-anchored`, `data-overlaid-placement`).
+   */
+  panelProps?: Record<string, string> | undefined
   refs: {
     anchor: RefCallback<unknown>
     surface: RefCallback<unknown>

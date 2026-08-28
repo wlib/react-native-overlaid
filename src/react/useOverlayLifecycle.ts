@@ -18,6 +18,7 @@ import {
 } from '../core/lifecycle'
 import type {
   Behavior,
+  DismissalChannel,
   DismissEvent,
   Bounds,
   LayerHost,
@@ -38,6 +39,8 @@ export type OverlayLifecycleInput = {
   exitMs: number
   presentGates?: ReadonlyArray<PresentGate> | undefined
   parentEntryId?: string | null
+  /** Who owns this entry's dismissal gestures; absent means `managed`. */
+  channel?: DismissalChannel | undefined
 }
 
 export function useOverlayLifecycle(input: OverlayLifecycleInput) {
@@ -163,13 +166,22 @@ export function useOverlayLifecycle(input: OverlayLifecycleInput) {
       id,
       behavior: input.behavior,
       parentEntryId: input.parentEntryId ?? null,
+      ...(input.channel !== undefined ? { channel: input.channel } : {}),
       panelRef,
       triggerRef,
       boundsRef,
       fire,
     })
     registeredHost.current = host
-  }, [fire, host, id, input.behavior, input.parentEntryId, isMounted])
+  }, [
+    fire,
+    host,
+    id,
+    input.behavior,
+    input.channel,
+    input.parentEntryId,
+    isMounted,
+  ])
 
   useEffect(
     () => () => {

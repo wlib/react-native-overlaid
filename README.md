@@ -302,6 +302,24 @@ The package takes no safe-area dependency. See
 [examples/safe-area.tsx](./examples/safe-area.tsx) and the exact platform
 behavior in [docs/PLATFORM-DIVERGENCES.md](./docs/PLATFORM-DIVERGENCES.md).
 
+## Web escape hatches
+
+On web, each family accepts an optional typed `web` prop for opting single
+instances into browser-native machinery — `dismissal: 'browser'`
+(`popover="auto"` light dismiss) and `positioning: 'css-anchor'` on
+Popover, `intent: 'interest'` and `positioning` on Tooltip, and
+`dismissal: 'closedby'` (`<dialog closedby>`) on Dialog/Drawer/Sheet:
+
+```tsx
+<Popover web={{ dismissal: 'browser', positioning: 'css-anchor' }}>…</Popover>
+```
+
+Defaults never change, the prop is ignored on native, and every opt-in
+falls back to today's managed behavior where the browser lacks the
+capability or the instance can veto dismissal (with a one-time dev warning
+naming the reason). Capability gates, fallbacks, and the exact behavioral
+deltas are documented in [docs/WEB-OPTIONS.md](./docs/WEB-OPTIONS.md).
+
 ## Native context bridge
 
 Native Popover and Tooltip panels render at the nearest portal host, so by
@@ -383,6 +401,7 @@ snapshotted for each presentation.
 ## Design notes
 
 - [Styling the web chrome](./docs/STYLING.md)
+- [Web escape hatches (the `web` prop)](./docs/WEB-OPTIONS.md)
 - [Platform divergences](./docs/PLATFORM-DIVERGENCES.md)
 - [Render trees and context ownership](./docs/RENDER-TREES.md)
 - [Architecture](./docs/ARCHITECTURE.md)

@@ -3,6 +3,7 @@ import { expect, userEvent, waitFor, within } from 'storybook/test'
 import { OverlayHost } from '../src'
 import {
   BasicDialog,
+  ClosedByDialog,
   CompoundDialog,
   NonDismissableDialog,
   ScrollableDialog,
@@ -92,6 +93,42 @@ export const CompoundParts: Story = {
     await userEvent.click(doc.getByLabelText('Close dialog'))
     await waitFor(() =>
       expect(doc.queryByText('Compound API')).not.toBeInTheDocument(),
+    )
+  },
+}
+
+export const BrowserDelegatedClosedBy: Story = {
+  name: "web.dismissal='closedby' — the browser owns dismissal",
+  render: () => <ClosedByDialog />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const doc = body(canvasElement)
+
+    await userEvent.click(await canvas.findByText('Open closedby dialog'))
+    await doc.findByText('Browser-delegated dialog')
+    const dialog = canvasElement.ownerDocument.querySelector(
+      'dialog[data-overlaid-modal]',
+    ) as HTMLDialogElement
+    // The delegated instance hands dismissal to <dialog closedby='any'>.
+    await expect(dialog.getAttribute('closedby')).toBe('any')
+    await expect(dialog.open).toBe(true)
+
+    // The manual backdrop classifier is retired for this instance: the
+    // synthetic press pair that closes a managed dialog is inert (untrusted
+    // events can never trigger the UA's own light dismiss either).
+    dialog.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
+    dialog.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    await expect(dialog.open).toBe(true)
+    await expect(dialog.dataset.overlaidPhase).toBe('presented')
+
+    // The browser's own close (what its light dismiss / close request
+    // performs) is a fait accompli the chrome self-reports into the kernel.
+    dialog.close()
+    await waitFor(() =>
+      expect(
+        doc.queryByText('Browser-delegated dialog'),
+      ).not.toBeInTheDocument(),
     )
   },
 }

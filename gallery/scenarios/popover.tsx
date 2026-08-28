@@ -166,3 +166,48 @@ export function CloseOnScrollPopover() {
     </View>
   )
 }
+
+export function BrowserDismissPopover() {
+  return (
+    <View style={{ gap: 24 }}>
+      <Popover web={{ dismissal: 'browser' }}>
+        <Popover.Trigger>
+          <Text>Open browser-dismissal popover</Text>
+        </Popover.Trigger>
+        <Popover.Content>
+          <View style={{ gap: 8, maxWidth: 260 }}>
+            <Paragraph>
+              web.dismissal='browser': popover="auto" — the browser owns light
+              dismiss, Escape, and its auto stack. Identical on native and in
+              browsers without the Popover API (managed fallback).
+            </Paragraph>
+            <Text>Delegated panel</Text>
+          </View>
+        </Popover.Content>
+      </Popover>
+      <Text>Neutral area</Text>
+    </View>
+  )
+}
+
+export function CssAnchorPopover() {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
+      {(['top', 'bottom-start', 'right'] as const).map((placement) => (
+        <Popover
+          key={placement}
+          placement={placement}
+          offset={8}
+          web={{ positioning: 'css-anchor' }}
+        >
+          <Popover.Trigger>
+            <Text>{`css ${placement}`}</Text>
+          </Popover.Trigger>
+          <Popover.Content>
+            <Text>{`CSS-anchored ${placement}`}</Text>
+          </Popover.Content>
+        </Popover>
+      ))}
+    </View>
+  )
+}

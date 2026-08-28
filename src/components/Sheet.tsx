@@ -14,6 +14,7 @@ import { useOverlayRoot } from '../react/useOverlayRoot'
 import { diagnoseDetents, diagnoseLayout, warnOnce } from './diagnostics'
 import { OverlayClose, OverlayTrigger, type OverlayCloseProps } from './parts'
 import { SheetScrollView } from './SheetScrollView'
+import { useWebDismissChannel, type ModalWebOptions } from './webOptions'
 
 export type SheetScrim =
   | {
@@ -39,6 +40,8 @@ export type SheetProps = {
   surface?: SlotOverride | undefined
   layout?: OverlayLayout | undefined
   insets?: OverlayInsets | undefined
+  /** Web-only escape hatches; ignored on native. See {@link ModalWebOptions}. */
+  web?: ModalWebOptions | undefined
   children: ReactNode
 }
 
@@ -69,10 +72,18 @@ function SheetRoot({
   surface,
   layout,
   insets,
+  web,
   children,
 }: SheetRootProps) {
   diagnoseLayout('Sheet', layout)
   diagnoseDetents(detents, initialDetent)
+  const webDismissal = useWebDismissChannel({
+    component: 'Sheet',
+    requested: web?.dismissal === 'closedby' ? 'closedby' : undefined,
+    open,
+    dismissable,
+    hasDismissRequestHandler: onDismissRequest !== undefined,
+  })
   const context = useOverlayRoot({
     kind: 'sheet',
     behavior: 'modal',
@@ -85,6 +96,7 @@ function SheetRoot({
     label: accessibilityLabel,
     layout,
     insets,
+    webDismissal,
   })
   const chrome = useMemo<SheetChromeConfig>(
     () => ({

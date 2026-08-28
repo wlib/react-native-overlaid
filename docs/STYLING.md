@@ -28,11 +28,14 @@ defaults for that instance. Native platforms are untouched by this file.
 ## Layer architecture
 
 ```css
-@layer overlaid.reset, overlaid.defaults, overlaid.motion;
+@layer overlaid.reset, overlaid.positioning, overlaid.defaults, overlaid.motion;
 ```
 
 - **`overlaid.reset`** — `<dialog>` and popover UA-chrome resets. Always
   applies (even with `unstyled`).
+- **`overlaid.positioning`** — the CSS Anchor Positioning engine for
+  panels that opted into `web.positioning='css-anchor'` (see
+  [WEB-OPTIONS.md](./WEB-OPTIONS.md)), keyed on `data-overlaid-anchored`.
 - **`overlaid.defaults`** — the default surface visuals (backgrounds, radii,
   paddings, shadows), guarded by `:not([data-overlaid-unstyled])` where the
   family has an `unstyled` prop.
@@ -59,15 +62,17 @@ attributes — `data-overlaid-modal`, `data-overlaid-popover`,
 `data-overlaid-drawer`, `data-overlaid-sheet`, `data-overlaid-phase`,
 `data-overlaid-reveal` — remain for compatibility):
 
-| Attribute                | Values                                        | Where                                                                                                                         |
-| ------------------------ | --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `data-overlaid-kind`     | `dialog` `drawer` `sheet` `popover` `tooltip` | host + surface                                                                                                                |
-| `data-overlaid-part`     | `host` `surface`                              | `<dialog>` hosts are `host`; panels are `surface` (the popover/tooltip panel is its own top-layer host and carries `surface`) |
-| `data-overlaid-state`    | `open` `closed`                               | `open` ⇔ lifecycle phase `presented` (Radix-compatible muscle memory)                                                         |
-| `data-overlaid-phase`    | `mounting` `presented` `dismissing`           | full lifecycle fidelity                                                                                                       |
-| `data-overlaid-side`     | `left` `right`                                | drawer surface                                                                                                                |
-| `data-overlaid-dragging` | present while a sheet drag is active          | sheet surface                                                                                                                 |
-| `data-overlaid-unstyled` | present when the consumer passed `unstyled`   | surface                                                                                                                       |
+| Attribute                 | Values                                             | Where                                                                                                                         |
+| ------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `data-overlaid-kind`      | `dialog` `drawer` `sheet` `popover` `tooltip`      | host + surface                                                                                                                |
+| `data-overlaid-part`      | `host` `surface`                                   | `<dialog>` hosts are `host`; panels are `surface` (the popover/tooltip panel is its own top-layer host and carries `surface`) |
+| `data-overlaid-state`     | `open` `closed`                                    | `open` ⇔ lifecycle phase `presented` (Radix-compatible muscle memory)                                                         |
+| `data-overlaid-phase`     | `mounting` `presented` `dismissing`                | full lifecycle fidelity                                                                                                       |
+| `data-overlaid-side`      | `left` `right`                                     | drawer surface                                                                                                                |
+| `data-overlaid-dragging`  | present while a sheet drag is active               | sheet surface                                                                                                                 |
+| `data-overlaid-unstyled`  | present when the consumer passed `unstyled`        | surface                                                                                                                       |
+| `data-overlaid-anchored`  | `css` when `web.positioning='css-anchor'` resolved | popover/tooltip surface                                                                                                       |
+| `data-overlaid-placement` | the resolved `placement` (e.g. `bottom-start`)     | popover/tooltip surface, css-anchor mode only                                                                                 |
 
 Entry transitions work because chromes mount with `data-overlaid-state="closed"`
 and the kernel's presentation gates flip it to `"open"` in a later commit —
@@ -78,12 +83,13 @@ you can key your own entry/exit animation entirely off that attribute.
 **Instance inputs** — written inline by the chrome, read by the stylesheet.
 Treat these as read-only values your CSS may _consume_:
 
-| Property                                                    | Written by    | Meaning                                                                                  |
-| ----------------------------------------------------------- | ------------- | ---------------------------------------------------------------------------------------- |
-| `--overlaid-duration`                                       | every chrome  | the instance's `exitMs` (dialog 180 / drawer 200 / sheet 220 / popover 120 / tooltip 80) |
-| `--overlaid-backdrop-duration`                              | dialog host   | legacy alias of the above for the `::backdrop` transition                                |
-| `--overlaid-backdrop-color` / `--overlaid-backdrop-opacity` | dialog host   | from the `backdrop`/`scrim` slot                                                         |
-| `--overlaid-sheet-translate` / `--overlaid-sheet-height`    | sheet surface | live drag/detent geometry, updated every frame                                           |
+| Property                                                                               | Written by         | Meaning                                                                                                                  |
+| -------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `--overlaid-duration`                                                                  | every chrome       | the instance's `exitMs` (dialog 180 / drawer 200 / sheet 220 / popover 120 / tooltip 80)                                 |
+| `--overlaid-backdrop-duration`                                                         | dialog host        | legacy alias of the above for the `::backdrop` transition                                                                |
+| `--overlaid-backdrop-color` / `--overlaid-backdrop-opacity`                            | dialog host        | from the `backdrop`/`scrim` slot                                                                                         |
+| `--overlaid-sheet-translate` / `--overlaid-sheet-height`                               | sheet surface      | live drag/detent geometry, updated every frame                                                                           |
+| `--overlaid-position-anchor` / `--overlaid-position-area` / `--overlaid-anchor-offset` | css-anchored panel | inputs to the `overlaid.positioning` layer (per-instance `anchor-name`, mapped `position-area`, the `offset` prop in px) |
 
 **Theme tokens** — defined (as fallbacks) by the stylesheet, overridable by
 your CSS at `:root` or any ancestor:

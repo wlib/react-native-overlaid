@@ -24,6 +24,7 @@ import { useOverlayRoot } from '../react/useOverlayRoot'
 import * as defaults from './defaultStyles'
 import { diagnoseLayout, warnOnce } from './diagnostics'
 import { OverlayClose, OverlayTrigger, type OverlayCloseProps } from './parts'
+import { useWebDismissChannel, type ModalWebOptions } from './webOptions'
 
 export type DrawerProps = {
   open: boolean
@@ -39,6 +40,8 @@ export type DrawerProps = {
   backdrop?: SlotOverride | false | undefined
   layout?: OverlayLayout | undefined
   insets?: OverlayInsets | undefined
+  /** Web-only escape hatches; ignored on native. See {@link ModalWebOptions}. */
+  web?: ModalWebOptions | undefined
   children: ReactNode
 }
 
@@ -52,6 +55,7 @@ export type DrawerRootProps = Pick<
   | 'layout'
   | 'insets'
   | 'backdrop'
+  | 'web'
   | 'children'
 >
 
@@ -70,9 +74,17 @@ function DrawerRoot({
   layout,
   insets,
   backdrop,
+  web,
   children,
 }: DrawerRootProps) {
   diagnoseLayout('Drawer', layout)
+  const webDismissal = useWebDismissChannel({
+    component: 'Drawer',
+    requested: web?.dismissal === 'closedby' ? 'closedby' : undefined,
+    open,
+    dismissable,
+    hasDismissRequestHandler: onDismissRequest !== undefined,
+  })
   const context = useOverlayRoot({
     kind: 'drawer',
     behavior: 'modal',
@@ -85,6 +97,7 @@ function DrawerRoot({
     label: accessibilityLabel,
     layout,
     insets,
+    webDismissal,
   })
   const chrome = useMemo(
     () => ({ backdrop, dismissable }),
@@ -200,6 +213,7 @@ function DrawerImpl({
   backdrop,
   layout,
   insets,
+  web,
   children,
 }: DrawerProps) {
   if (!dismissable && !showCloseButton) {
@@ -219,6 +233,7 @@ function DrawerImpl({
       layout={layout}
       insets={insets}
       backdrop={backdrop}
+      web={web}
     >
       <DrawerContent
         side={side}

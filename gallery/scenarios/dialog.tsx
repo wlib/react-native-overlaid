@@ -116,3 +116,23 @@ export function CompoundDialog() {
     </View>
   )
 }
+
+export function ClosedByDialog() {
+  const [open, setOpen] = useState(false)
+  return (
+    <View>
+      <Button title="Open closedby dialog" onPress={() => setOpen(true)} />
+      <Dialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Browser-delegated dialog"
+        description="web.dismissal='closedby' hands escape and backdrop light dismiss to <dialog closedby='any'>; identical managed behavior on native and in browsers without closedby (Safari)."
+        web={{ dismissal: 'closedby' }}
+      >
+        <View style={{ marginTop: 16 }}>
+          <Paragraph>Body content goes here.</Paragraph>
+        </View>
+      </Dialog>
+    </View>
+  )
+}

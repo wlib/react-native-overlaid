@@ -18,7 +18,7 @@
  *   data-overlaid-unstyled                      (consumer passed unstyled)
  */
 
-@layer overlaid.reset, overlaid.defaults, overlaid.motion;
+@layer overlaid.reset, overlaid.positioning, overlaid.defaults, overlaid.motion;
 
 @layer overlaid.reset {
   dialog[data-overlaid-modal] {
@@ -74,6 +74,44 @@
     background-color: transparent;
     color: inherit;
     overflow: visible;
+  }
+}
+
+/* CSS Anchor Positioning engine (opt-in: web.positioning='css-anchor' on
+ * Popover/Tooltip). The chrome writes the variable inputs inline
+ * (--overlaid-position-anchor/-area/--overlaid-anchor-offset) and renders
+ * data-overlaid-anchored='css' + data-overlaid-placement; the mechanism
+ * lives here. Engines without position-try-fallbacks / position-visibility
+ * simply ignore those declarations — the placement itself still works
+ * everywhere the option resolves (it is capability-gated in JS). */
+@layer overlaid.positioning {
+  [data-overlaid-anchored='css'] {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    position-anchor: var(--overlaid-position-anchor);
+    position-area: var(--overlaid-position-area);
+    position-try-fallbacks:
+      flip-block,
+      flip-inline,
+      flip-block flip-inline;
+    position-visibility: anchors-visible;
+  }
+  /* The offset margin is set on BOTH sides of the placement's gap axis so
+   * a flip-block/flip-inline fallback keeps the anchor gap; the outer
+   * margin only stands the panel off the viewport edge by the same amount.
+   * try-order prefers the roomier region on the placement's own axis. */
+  [data-overlaid-anchored='css'][data-overlaid-placement^='top'],
+  [data-overlaid-anchored='css'][data-overlaid-placement^='bottom'] {
+    margin-top: var(--overlaid-anchor-offset, 0px);
+    margin-bottom: var(--overlaid-anchor-offset, 0px);
+    position-try-order: most-height;
+  }
+  [data-overlaid-anchored='css'][data-overlaid-placement^='left'],
+  [data-overlaid-anchored='css'][data-overlaid-placement^='right'] {
+    margin-left: var(--overlaid-anchor-offset, 0px);
+    margin-right: var(--overlaid-anchor-offset, 0px);
+    position-try-order: most-width;
   }
 }
 

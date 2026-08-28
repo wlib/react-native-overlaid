@@ -22,6 +22,11 @@ import { useAnchoredOverlayRoot } from '../react/useOverlayRoot'
 import * as defaults from './defaultStyles'
 import { warnOnce } from './diagnostics'
 import { OverlayTrigger } from './parts'
+import {
+  resolveWebPositioning,
+  useWebDismissChannel,
+  type PopoverWebOptions,
+} from './webOptions'
 
 type PopoverRootConfig = {
   contextBridge: ContextBridge | undefined
@@ -48,6 +53,8 @@ export type PopoverProps = {
   closeOnScroll?: boolean | undefined
   contextBridge?: ContextBridge | undefined
   insets?: OverlayInsets | undefined
+  /** Web-only escape hatches; ignored on native. See {@link PopoverWebOptions}. */
+  web?: PopoverWebOptions | undefined
   children: ReactNode
 }
 
@@ -62,6 +69,7 @@ function PopoverRoot({
   closeOnScroll = true,
   contextBridge,
   insets,
+  web,
   children,
 }: PopoverProps) {
   if (!Number.isFinite(offset)) {
@@ -72,6 +80,14 @@ function PopoverRoot({
     ...(controlledOpen !== undefined ? { value: controlledOpen } : {}),
     ...(onOpenChange !== undefined ? { onChange: onOpenChange } : {}),
   })
+  const webDismissal = useWebDismissChannel({
+    component: 'Popover',
+    requested: web?.dismissal === 'browser' ? 'browser' : undefined,
+    open,
+    dismissable,
+    hasDismissRequestHandler: onDismissRequest !== undefined,
+  })
+  const positioning = resolveWebPositioning('Popover', web?.positioning, false)
   const context = useAnchoredOverlayRoot(
     {
       kind: 'popover',
@@ -84,8 +100,13 @@ function PopoverRoot({
       onDismissRequest,
       label: accessibilityLabel,
       insets,
+      webDismissal,
     },
-    { placement, offset },
+    {
+      placement,
+      offset,
+      ...(positioning !== undefined ? { positioning } : {}),
+    },
   )
   const onScrollDismiss = useCallback(() => {
     context.actions.requestDismiss('scroll')

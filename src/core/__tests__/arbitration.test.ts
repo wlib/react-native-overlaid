@@ -16,6 +16,14 @@ function entry(
   return { id, behavior, parentEntryId }
 }
 
+function platformEntry(
+  id: string,
+  behavior: Behavior,
+  parentEntryId: string | null = null,
+): StackEntrySnapshot {
+  return { id, behavior, parentEntryId, channel: 'platform' }
+}
+
 describe('key dismissal plans', () => {
   it('walks top-down, while back skips hints', () => {
     const stack = [
@@ -112,6 +120,68 @@ describe('transient displacement plans', () => {
     ]
     expect(planTransientDisplacement(stack, null)).toEqual([
       { id: 'hint', event: 'outside-press', force: true },
+    ])
+  })
+})
+
+describe('platform-channel entries (browser-delegated dismissal)', () => {
+  it('escape defers to a topmost platform transient without firing anyone', () => {
+    // The browser closes its own popover on Escape; one gesture must not
+    // also close the managed layer below through the kernel.
+    const stack = [entry('managed', 'auto'), platformEntry('delegated', 'auto')]
+    expect(planEscape(stack)).toEqual([
+      {
+        id: 'delegated',
+        event: 'escape',
+        stopAlways: true,
+        deferToPlatform: true,
+      },
+    ])
+  })
+
+  it('escape still fires a managed transient above a platform one', () => {
+    const stack = [platformEntry('delegated', 'auto'), entry('managed', 'auto')]
+    expect(planEscape(stack)).toEqual([
+      { id: 'managed', event: 'escape', stopIfHandled: true },
+      {
+        id: 'delegated',
+        event: 'escape',
+        stopAlways: true,
+        deferToPlatform: true,
+      },
+    ])
+  })
+
+  it('escape defers at a platform modal blocker', () => {
+    const stack = [entry('below', 'auto'), platformEntry('modal', 'modal')]
+    expect(planEscape(stack)).toEqual([
+      {
+        id: 'modal',
+        event: 'escape',
+        stopAlways: true,
+        deferToPlatform: true,
+      },
+    ])
+  })
+
+  it('outside press skips platform entries but continues to managed ones', () => {
+    // The browser light-dismisses its own popover; the kernel still presses
+    // the managed transient below it in the same gesture.
+    const stack = [entry('managed', 'auto'), platformEntry('delegated', 'auto')]
+    expect(planOutsidePress(stack, null)).toEqual([
+      { id: 'managed', event: 'outside-press' },
+    ])
+  })
+
+  it('outside press never fires a platform modal but still stops at it', () => {
+    const stack = [entry('below', 'auto'), platformEntry('modal', 'modal')]
+    expect(planOutsidePress(stack, null)).toEqual([])
+  })
+
+  it('displacement skips platform transients (the browser auto stack owns them)', () => {
+    const stack = [platformEntry('delegated', 'auto'), entry('managed', 'auto')]
+    expect(planTransientDisplacement(stack, 'opening')).toEqual([
+      { id: 'managed', event: 'outside-press', force: true },
     ])
   })
 })

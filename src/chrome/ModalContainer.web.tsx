@@ -4,6 +4,7 @@
 // Interprets: mounted state -> modal <dialog>; phase -> ::backdrop reveal.
 // Reports: real show, backdrop press, and browser-forced close.
 import { useEffect, useLayoutEffect, useRef } from 'react'
+import { sniffDismissCause } from '../react/dismissInputRecord'
 import { flattenToCss } from '../react/flattenStyle'
 import { useOverlayContext } from '../react/overlayContext'
 import type { ModalContainerProps } from './ModalContainer'
@@ -15,14 +16,29 @@ export function ModalContainer({
   backdrop,
   horizontalPadding,
 }: ModalContainerProps) {
-  const { state, signals, actions, panelId, exitMs, a11y, kind, insets } =
-    useOverlayContext()
+  const {
+    state,
+    signals,
+    actions,
+    panelId,
+    exitMs,
+    a11y,
+    kind,
+    insets,
+    webDismissal,
+  } = useOverlayContext()
   const dialogRef = useRef<HTMLDialogElement | null>(null)
   const pressStartedOnBackdrop = useRef(false)
   // Changing modal/modeless ownership on a live <dialog> requires a close
   // cycle. Snapshot that structural choice for this mounted presentation;
   // object-style backdrop updates may still flow live.
   const hasBackdrop = useRef(backdrop !== false).current
+  // Delegated dismissal (web.dismissal='closedby'): the browser runs light
+  // dismiss and close requests via <dialog closedby>, this chrome only
+  // mirrors outcomes — the manual backdrop classifier, the onCancel
+  // interception, and the refusal re-show retire for this instance.
+  // Snapshotted like the modal/modeless mode above.
+  const delegated = useRef(webDismissal === 'delegated').current
   // A backdrop-free Dialog/Drawer is genuinely modeless on web. Sheets keep
   // modal top-layer behavior even when only their visual scrim is disabled.
   const usesModalTopLayer = hasBackdrop || kind === 'sheet'
@@ -80,6 +96,12 @@ export function ModalContainer({
       data-overlaid-has-backdrop={hasBackdrop ? 'true' : 'false'}
       data-overlaid-modal-mode={usesModalTopLayer ? 'modal' : 'modeless'}
       data-overlaid-reveal=""
+      {...(delegated
+        ? // 'any' = browser light dismiss + close requests; a backdrop-free
+          // host is modeless, so only close requests apply. Never 'none' —
+          // non-dismissable instances resolve to managed up front.
+          { closedby: hasBackdrop ? 'any' : 'closerequest' }
+        : {})}
       {...a11y.host}
       className={backdrop ? backdrop.className : undefined}
       style={{
@@ -108,11 +130,27 @@ export function ModalContainer({
             : undefined,
         pointerEvents: usesModalTopLayer ? undefined : 'none',
       }}
-      onCancel={(event) => event.preventDefault()}
-      onClose={() => {
+      onCancel={
+        delegated
+          ? undefined
+          : (event) => {
+              // React re-dispatches non-delegated DOM events (dialog
+              // cancel/close) through fiber ancestors, so this handler can
+              // receive a NESTED dialog's cancel — preventing that would
+              // block the child's own close request.
+              if (event.target === event.currentTarget) event.preventDefault()
+            }
+      }
+      onClose={(event) => {
+        if (event.target !== event.currentTarget) return
         if (!state.isOpen) return
-        const dismissed = actions.requestDismiss('escape')
-        if (dismissed) return
+        // A delegated close is the browser's fait accompli: self-report it
+        // with a sniffed cause; refusal is impossible (vetoless by
+        // construction), so the re-show path retires for this instance.
+        const dismissed = actions.requestDismiss(
+          delegated ? sniffDismissCause('modal') : 'escape',
+        )
+        if (dismissed || delegated) return
         try {
           const dialog = dialogRef.current
           if (dialog) showDialog(dialog, usesModalTopLayer)
@@ -121,20 +159,29 @@ export function ModalContainer({
           // Already open, detached, or another top-layer operation won.
         }
       }}
-      onPointerDown={(event) => {
-        pressStartedOnBackdrop.current = event.target === event.currentTarget
-      }}
-      onClick={(event) => {
-        const startedHere = pressStartedOnBackdrop.current
-        pressStartedOnBackdrop.current = false
-        if (
-          usesModalTopLayer &&
-          startedHere &&
-          event.target === event.currentTarget
-        ) {
-          actions.requestDismiss('backdrop-press')
-        }
-      }}
+      onPointerDown={
+        delegated
+          ? undefined
+          : (event) => {
+              pressStartedOnBackdrop.current =
+                event.target === event.currentTarget
+            }
+      }
+      onClick={
+        delegated
+          ? undefined
+          : (event) => {
+              const startedHere = pressStartedOnBackdrop.current
+              pressStartedOnBackdrop.current = false
+              if (
+                usesModalTopLayer &&
+                startedHere &&
+                event.target === event.currentTarget
+              ) {
+                actions.requestDismiss('backdrop-press')
+              }
+            }
+      }
     >
       {children}
     </dialog>

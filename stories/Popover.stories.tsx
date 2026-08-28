@@ -3,7 +3,9 @@ import { expect, userEvent, waitFor, within } from 'storybook/test'
 import { OverlayHost } from '../src'
 import {
   BasicPopover,
+  BrowserDismissPopover,
   CloseOnScrollPopover,
+  CssAnchorPopover,
   DisplacingPopovers,
   ForcedDisplacementPopovers,
   NonDismissablePopover,
@@ -187,5 +189,90 @@ export const DisplacementVsNonDismissable: Story = {
     await expect(
       doc.getByText('Veto panel: onDismissRequest keeps me open'),
     ).toBeInTheDocument()
+  },
+}
+
+export const BrowserDelegatedDismissal: Story = {
+  name: "web.dismissal='browser' — the browser owns dismissal",
+  render: () => <BrowserDismissPopover />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const doc = body(canvasElement)
+
+    await userEvent.click(
+      await canvas.findByText('Open browser-dismissal popover'),
+    )
+    await doc.findByText('Delegated panel')
+    const panel = doc
+      .getByText('Delegated panel')
+      .closest('[data-overlaid-popover]') as HTMLElement
+    // The delegated instance runs the real auto-popover machinery in the
+    // top layer — not the library's managed manual mode.
+    await expect(panel.getAttribute('popover')).toBe('auto')
+    await expect(panel.matches(':popover-open')).toBe(true)
+
+    // R1 in a real browser: the kernel's outside-press channel must stand
+    // down for the delegated layer. Synthetic (untrusted) events reach the
+    // kernel's document listeners but can never trigger the UA's own light
+    // dismiss, so a click that would close a managed popover leaves the
+    // delegated one open — only the browser may close it.
+    await userEvent.click(canvas.getByText('Neutral area'))
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    await expect(panel.matches(':popover-open')).toBe(true)
+    await expect(panel.dataset.overlaidState).toBe('open')
+
+    // Same for Escape: the kernel defers (no preventDefault, no dismissal).
+    await userEvent.keyboard('{Escape}')
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    await expect(panel.matches(':popover-open')).toBe(true)
+
+    // The browser's own close (what its trusted light dismiss performs) is
+    // a fait accompli the chrome self-reports into the kernel: the panel
+    // unmounts without any managed re-show.
+    panel.hidePopover()
+    await waitFor(() =>
+      expect(doc.queryByText('Delegated panel')).not.toBeInTheDocument(),
+    )
+  },
+}
+
+export const CssAnchorPositioning: Story = {
+  name: "web.positioning='css-anchor' — placement without Floating UI",
+  render: () => <CssAnchorPopover />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const doc = body(canvasElement)
+
+    const trigger = await canvas.findByText('css bottom-start')
+    await userEvent.click(trigger)
+    const panel = (await doc.findByText('CSS-anchored bottom-start')).closest(
+      '[data-overlaid-popover]',
+    ) as HTMLElement
+
+    // The CSS engine, not Floating UI, owns placement: stylesheet inputs
+    // rendered, no inline pixel coordinates written.
+    await expect(panel.dataset.overlaidAnchored).toBe('css')
+    await expect(panel.dataset.overlaidPlacement).toBe('bottom-start')
+    await expect(panel.style.top).toBe('')
+    await expect(panel.style.left).toBe('')
+
+    // A closed popover is display:none with a zero rect — measure only
+    // once the browser has actually shown it in the top layer.
+    await waitFor(() => expect(panel.matches(':popover-open')).toBe(true))
+
+    // And the browser actually anchors it: below the trigger (offset 8),
+    // start-aligned within region tolerance.
+    const anchorRect = trigger.getBoundingClientRect()
+    const panelRect = panel.getBoundingClientRect()
+    await expect(panelRect.top).toBeGreaterThanOrEqual(anchorRect.bottom)
+    await expect(panelRect.left).toBeLessThan(anchorRect.right)
+    await expect(panelRect.right).toBeGreaterThan(anchorRect.left)
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(
+        doc.queryByText('CSS-anchored bottom-start'),
+      ).not.toBeInTheDocument(),
+    )
   },
 }

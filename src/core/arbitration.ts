@@ -1,10 +1,12 @@
 import { BEHAVIOR, type BehaviorTable } from './behaviorPolicy'
-import type { Behavior, DismissEvent } from './types'
+import type { Behavior, DismissalChannel, DismissEvent } from './types'
 
 export type StackEntrySnapshot = Readonly<{
   id: string
   behavior: Behavior
   parentEntryId: string | null
+  /** Absent means `managed`; see {@link DismissalChannel}. */
+  channel?: DismissalChannel
 }>
 
 export type Step = Readonly<{
@@ -13,6 +15,12 @@ export type Step = Readonly<{
   force?: boolean
   stopIfHandled?: boolean
   stopAlways?: boolean
+  /**
+   * The platform channel owns this gesture for this entry: the executor must
+   * not fire it (the browser closes it and the entry self-reports), and the
+   * dispatcher must leave the platform's default action alone.
+   */
+  deferToPlatform?: boolean
 }>
 
 export function isAncestorOf(
@@ -48,18 +56,29 @@ function planKeyDismiss(
     const entry = stack[index]
     if (!entry) continue
     const policy = behaviors[entry.behavior]
+    const platform = entry.channel === 'platform'
     if (policy.blocksBelow) {
       if (policy[eligibility]) {
-        steps.push({
-          id: entry.id,
-          event,
-          stopIfHandled: true,
-          stopAlways: true,
-        })
+        steps.push(
+          platform
+            ? { id: entry.id, event, stopAlways: true, deferToPlatform: true }
+            : { id: entry.id, event, stopIfHandled: true, stopAlways: true },
+        )
       }
       break
     }
     if (policy[eligibility]) {
+      if (platform) {
+        // The browser closes this entry itself; one gesture must still close
+        // at most one layer, so the walk ends here without a kernel firing.
+        steps.push({
+          id: entry.id,
+          event,
+          stopAlways: true,
+          deferToPlatform: true,
+        })
+        break
+      }
       steps.push({ id: entry.id, event, stopIfHandled: true })
     }
   }
@@ -93,9 +112,13 @@ export function planOutsidePress(
     const policy = behaviors[entry.behavior]
     const inside =
       containerId === entry.id || isAncestorOf(stack, entry.id, containerId)
+    // Platform-channel entries light-dismiss through the browser and
+    // self-report; the kernel presses managed entries only (the walk still
+    // continues past a platform transient to managed layers below it).
+    const fires = !inside && policy.outsidePress && entry.channel !== 'platform'
 
     if (policy.blocksBelow) {
-      if (!inside && policy.outsidePress) {
+      if (fires) {
         steps.push({
           id: entry.id,
           event: 'outside-press',
@@ -104,7 +127,7 @@ export function planOutsidePress(
       }
       break
     }
-    if (!inside && policy.outsidePress) {
+    if (fires) {
       steps.push({ id: entry.id, event: 'outside-press' })
     }
   }
@@ -130,6 +153,8 @@ export function planTransientDisplacement(
     }
     const policy = behaviors[entry.behavior]
     if (policy.blocksBelow) break
+    // The browser's own auto stack displaces platform-channel transients.
+    if (entry.channel === 'platform') continue
     if (policy.displacedByNewTransient) {
       steps.push({
         id: entry.id,

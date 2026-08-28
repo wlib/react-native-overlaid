@@ -67,6 +67,13 @@ window-sized invisible underlay. If that underlay covers another registered
 overlay trigger, the package dismisses the current transient and replays the
 new trigger so switching popovers takes one tap.
 
+The web-only `web` prop can hand an instance's dismissal to the browser
+(`dismissal: 'browser'` on Popover, `'closedby'` on Dialog/Drawer/Sheet):
+the kernel's listeners stand down for that instance and mirror the
+browser's outcome instead, with a best-effort sniffed cause. Native ignores
+the prop entirely, as do browsers missing the capability and instances
+that can veto — see [WEB-OPTIONS.md](./WEB-OPTIONS.md).
+
 Android back starts at the deepest attached native host. An RN `Modal` routes
 `onRequestClose` through overlays in its own window before delegating to its
 owning dialog or drawer. While a native sheet contains nested layers, TrueSheet

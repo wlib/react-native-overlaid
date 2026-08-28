@@ -18,6 +18,7 @@ import {
   type OverlayLayout,
   type SurfaceA11yProps,
   type TriggerA11yProps,
+  type WebDismissal,
 } from './overlayContext'
 import { useAnchoredPosition } from './useAnchoredPosition'
 import { useOverlayLifecycle } from './useOverlayLifecycle'
@@ -39,6 +40,13 @@ export type OverlaySpec = {
   labelled?:
     | { title?: boolean | undefined; description?: boolean | undefined }
     | undefined
+  /**
+   * Resolved web dismissal ownership (see the components' `web` prop and
+   * `useWebDismissChannel`). `delegated` registers the layer on the
+   * platform channel so the kernel's planners stand down for gestures the
+   * browser owns. Defaults to `managed`.
+   */
+  webDismissal?: WebDismissal | undefined
 }
 
 type Lifecycle = ReturnType<typeof useOverlayLifecycle>
@@ -55,6 +63,7 @@ function useOverlayBase(spec: OverlaySpec) {
     exitMs: spec.exitMs,
     presentGates: spec.presentGates,
     parentEntryId: parent?.id ?? null,
+    channel: spec.webDismissal === 'delegated' ? 'platform' : 'managed',
   })
   const anchor = useMemo(
     () => composeRefs(lifecycle.refs.trigger),
@@ -160,6 +169,7 @@ function useAssembledContext(
         bounds: lifecycle.refs.bounds,
       },
       anchored,
+      webDismissal: spec.webDismissal ?? 'managed',
       a11y: { trigger, surface, host },
     }
   }, [
@@ -177,6 +187,7 @@ function useAssembledContext(
     spec.label,
     spec.layout,
     spec.role,
+    spec.webDismissal,
     surfaceRef,
   ])
 }

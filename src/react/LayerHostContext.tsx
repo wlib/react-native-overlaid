@@ -16,6 +16,7 @@ import {
   type LayerHostOptions,
 } from '../core/layerHost'
 import type { LayerEntry, LayerHost } from '../core/types'
+import { recordDismissInput } from './dismissInputRecord'
 
 const LayerHostContext = createContext<LayerHost | null>(null)
 
@@ -28,10 +29,14 @@ function useRootDismissListeners(host: LayerHost): void {
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || event.defaultPrevented) return
+      // Delegated (browser-owned) instances self-report causeless closes;
+      // recording the input lets their chrome sniff the actual cause.
+      recordDismissInput('escape')
       const outcome = deepestAttachedDescendant(host).dispatchEscape()
       if (outcome !== 'unhandled') event.preventDefault()
     }
     const onPointerDown = (event: PointerEvent) => {
+      recordDismissInput('pointerdown')
       const target = event.target as { matches?: (selector: string) => boolean }
       // ModalContainer owns <dialog> backdrop classification. Letting the
       // global listener also classify that same pointerdown would produce an

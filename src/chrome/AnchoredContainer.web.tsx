@@ -16,6 +16,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import type { OverlayRole } from '../core/types'
+import { sniffDismissCause } from '../react/dismissInputRecord'
 import { flattenToCss } from '../react/flattenStyle'
 import {
   useAnchoredOverlayContext,
@@ -75,8 +76,14 @@ export function AnchoredContainer({
     anchored,
     exitMs,
     kind,
+    webDismissal,
   } = context
   const supportsPopover = hasWebCapability('popover')
+  // Browser-delegated dismissal (web.dismissal='browser'): popover="auto",
+  // so the browser owns light dismiss / Escape / its auto stack and this
+  // chrome only mirrors outcomes. Resolution already gated on capability
+  // and vetolessness (useWebDismissChannel).
+  const delegated = webDismissal === 'delegated' && supportsPopover
 
   const composeRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -148,10 +155,16 @@ export function AnchoredContainer({
       if (isPopoverOpen(element)) return
       if (!state.isOpen) return
 
-      // Browser-initiated close must be reconciled with the kernel. If the
-      // kernel refuses, restore the platform surface it still owns.
-      const dismissed = actions.requestDismiss('escape')
-      if (!dismissed && element.isConnected) {
+      // Browser-initiated close must be reconciled with the kernel. A
+      // delegated instance self-reports the browser's fait accompli with a
+      // sniffed cause and can never be refused (it is vetoless by
+      // construction), so its re-assert path retires. A managed instance
+      // reports 'escape' and, if the kernel refuses, restores the platform
+      // surface the kernel still owns.
+      const dismissed = actions.requestDismiss(
+        delegated ? sniffDismissCause('transient') : 'escape',
+      )
+      if (!dismissed && !delegated && element.isConnected) {
         try {
           showPopoverFrom(element, refs.trigger.current)
         } catch {
@@ -161,7 +174,7 @@ export function AnchoredContainer({
     }
     element.addEventListener('toggle', onToggle)
     return () => element.removeEventListener('toggle', onToggle)
-  }, [actions, refs.trigger, signals, state.isOpen, supportsPopover])
+  }, [actions, delegated, refs.trigger, signals, state.isOpen, supportsPopover])
 
   useEffect(() => {
     if (readyReported.current || !state.isMounted || !anchored.isPositioned) {
@@ -182,6 +195,7 @@ export function AnchoredContainer({
       data-overlaid-phase={state.phase}
       data-overlaid-reveal=""
       {...(unstyled ? { 'data-overlaid-unstyled': '' } : {})}
+      {...(anchored.panelProps ?? {})}
       role={role}
       aria-label={accessibilityLabel}
       className={className}
@@ -192,7 +206,10 @@ export function AnchoredContainer({
         ...flattenToCss(style),
       }}
       {...(supportsPopover
-        ? { popover: behavior === 'hint' ? 'hint' : 'manual' }
+        ? {
+            popover:
+              behavior === 'hint' ? 'hint' : delegated ? 'auto' : 'manual',
+          }
         : {})}
     >
       {children}

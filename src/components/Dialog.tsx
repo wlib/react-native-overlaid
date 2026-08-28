@@ -31,6 +31,7 @@ import * as defaults from './defaultStyles'
 import { diagnoseLayout, warnOnce } from './diagnostics'
 import { DialogSurface } from './DialogSurface'
 import { OverlayClose, OverlayTrigger, type OverlayCloseProps } from './parts'
+import { useWebDismissChannel, type ModalWebOptions } from './webOptions'
 
 export type DialogProps = {
   open: boolean
@@ -49,6 +50,8 @@ export type DialogProps = {
   backdrop?: SlotOverride | false | undefined
   layout?: OverlayLayout | undefined
   insets?: OverlayInsets | undefined
+  /** Web-only escape hatches; ignored on native. See {@link ModalWebOptions}. */
+  web?: ModalWebOptions | undefined
   children: ReactNode
 }
 
@@ -62,6 +65,7 @@ export type DialogRootProps = Pick<
   | 'layout'
   | 'insets'
   | 'backdrop'
+  | 'web'
   | 'children'
 >
 
@@ -91,10 +95,18 @@ function DialogRootBase({
   layout,
   insets,
   backdrop,
+  web,
   labelled,
   children,
 }: DialogRootBaseProps) {
   diagnoseLayout('Dialog', layout)
+  const webDismissal = useWebDismissChannel({
+    component: 'Dialog',
+    requested: web?.dismissal === 'closedby' ? 'closedby' : undefined,
+    open,
+    dismissable,
+    hasDismissRequestHandler: onDismissRequest !== undefined,
+  })
   const context = useOverlayRoot({
     kind: 'dialog',
     behavior: 'modal',
@@ -108,6 +120,7 @@ function DialogRootBase({
     layout,
     insets,
     labelled,
+    webDismissal,
   })
 
   const chrome = useMemo(
@@ -316,6 +329,7 @@ function DialogImpl({
   backdrop,
   layout,
   insets,
+  web,
   children,
 }: DialogProps) {
   if (!dismissable && !showCloseButton) {
@@ -335,6 +349,7 @@ function DialogImpl({
       layout={layout}
       insets={insets}
       backdrop={backdrop}
+      web={web}
       labelled={{ title: !!title, description: !!description }}
     >
       <DialogContent

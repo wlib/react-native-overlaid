@@ -20,6 +20,11 @@ export {
   type OverlayTriggerProps,
   type OverlayTriggerRenderProps,
 } from './components/parts'
+export type {
+  ModalWebOptions,
+  PopoverWebOptions,
+  TooltipWebOptions,
+} from './components/webOptions'
 
 // Required application host.
 export { OverlayHost, ROOT_HOST_NAME } from './react/OverlayHost'
@@ -53,6 +58,7 @@ export {
   type SlotOverride,
   type SurfaceA11yProps,
   type TriggerA11yProps,
+  type WebDismissal,
 } from './react/overlayContext'
 export {
   LayerHostProvider,
@@ -116,6 +122,7 @@ export {
 } from './core/detents'
 export type {
   Behavior,
+  DismissalChannel,
   DismissEvent,
   DispatchOutcome,
   LayerEntry,
