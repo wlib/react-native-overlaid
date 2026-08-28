@@ -29,6 +29,17 @@ The host tree installs global listeners only at its root. Native Modal/sheet
 windows attach child hosts; global dismissal starts at the deepest newest host
 and delegates upward when unhandled.
 
+On web, the kernel additionally resolves each instance's dismissal channel
+once per mounted presentation (`resolveDismissChannel`): vetoless
+dismissable instances delegate their user-gesture dismissal to the browser's
+own instruments per kind × capability, and register as platform-channel
+layer entries. The planners hand trusted gestures to those entries without
+firing them (the browser acts; the chrome self-reports the outcome), route
+untrusted (synthetic) gestures through the kernel unchanged — the browser is
+inert to those — and keep displacement kernel-owned for both channels. A
+delegated key gesture the platform never answers is reclaimed by the host
+after a short beat; the already-dismissing guard absorbs any double.
+
 The native portal is a small registry portal. Anchored children mount in the
 host subtree for deterministic geometry. The single tradeoff—React context is
 read at the host—is explicit and repairable with `useContextBridge`.
@@ -86,3 +97,10 @@ small and policy-free. Compound and preset forms share the exact same internals.
 - OS-sheet dismissal is classified by machine state, never by the latest prop.
 - Consumers interact with native sheet detents only through close/reopen.
 - The role-bearing element owns the accessible name.
+- One dismissal classification per user gesture: where a platform channel
+  covers a gesture for an entry, the kernel stands down for it (trusted
+  input), and any residual double delivery must be provably absorbed by the
+  dying-guard and notify latch.
+- An instance that can veto (`onDismissRequest`) or refuse
+  (`dismissable={false}`) never delegates; the channel is snapshotted per
+  presentation.

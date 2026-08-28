@@ -9,6 +9,14 @@ export type AnchoredSpec = {
   offset?: number | undefined
   /** Optional flip/shift boundary. The window/viewport is used by default. */
   boundaryRef?: RefObject<unknown> | undefined
+  /**
+   * Mirrors the consumer's scroll-dismiss setting for engine selection only:
+   * when any page scroll dismisses the overlay (the default), frame-synced
+   * CSS anchor tracking buys nothing, so the web hook keeps Floating UI for
+   * pixel parity. `false` makes the instance eligible for the CSS Anchor
+   * Positioning engine where supported. Ignored on native.
+   */
+  closeOnScroll?: boolean | undefined
 }
 
 export type AnchoredPositionOptions = AnchoredSpec & {

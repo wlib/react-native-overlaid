@@ -4,6 +4,7 @@ import { OverlayHost } from '../src'
 import {
   BasicPopover,
   CloseOnScrollPopover,
+  CssAnchorPlacements,
   DisplacingPopovers,
   ForcedDisplacementPopovers,
   NonDismissablePopover,
@@ -150,6 +151,118 @@ export const ScrollInsidePanelDoesNotDismiss: Story = {
       .closest('[data-overlaid-popover]') as HTMLElement
     await expect(panel).not.toBeNull()
     await expect(panel.dataset.overlaidState).toBe('open')
+  },
+}
+
+export const MixedChannels: Story = {
+  name: 'Mixed channels: managed veto + delegated plain popover in one host',
+  render: () => <ForcedDisplacementPopovers />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const doc = body(canvasElement)
+    const veto = 'Veto panel: onDismissRequest keeps me open'
+
+    // Open the managed (veto) popover, then the delegated (plain) one on
+    // top: the plain popover's kernel displacement fires at the veto
+    // popover and the veto outranks the force, so both stay open.
+    await userEvent.click(await canvas.findByText('Toggle veto popover'))
+    await doc.findByText(veto)
+    await userEvent.click(canvas.getByText('Toggle displacing popover'))
+    await doc.findByText('Displacing panel')
+    await expect(doc.getByText(veto)).toBeInTheDocument()
+
+    // Channel split is visible at the mechanism level only: the vetoless
+    // popover joined the browser's auto stack, the veto one stayed manual.
+    const vetoPanel = doc
+      .getByText(veto)
+      .closest('[data-overlaid-popover]') as HTMLElement
+    const plainPanel = doc
+      .getByText('Displacing panel')
+      .closest('[data-overlaid-popover]') as HTMLElement
+    await expect(vetoPanel.getAttribute('popover')).toBe('manual')
+    await expect(plainPanel.getAttribute('popover')).toBe('auto')
+
+    // A synthetic outside press never reaches the browser's light dismiss,
+    // so the kernel handles the delegated popover for it (trust gate) —
+    // and the veto still refuses through the kernel.
+    await userEvent.click(canvas.getByText(/Displacement \(opening a new/))
+    await waitFor(() =>
+      expect(doc.queryByText('Displacing panel')).not.toBeInTheDocument(),
+    )
+    await expect(doc.getByText(veto)).toBeInTheDocument()
+
+    // The real delegated path is a browser fait accompli: hidePopover()
+    // fires the same toggle(closed) the auto stack produces, and the
+    // kernel accepts the self-report. The veto popover is untouched.
+    await userEvent.click(canvas.getByText('Toggle displacing popover'))
+    const reopened = await doc.findByText('Displacing panel')
+    ;(reopened.closest('[data-overlaid-popover]') as HTMLElement).hidePopover()
+    await waitFor(() =>
+      expect(doc.queryByText('Displacing panel')).not.toBeInTheDocument(),
+    )
+    await expect(doc.getByText(veto)).toBeInTheDocument()
+  },
+}
+
+export const MixedChannelsFallback: Story = {
+  name: 'Mixed channels story under the no-caps mix (all managed, portal chrome)',
+  render: () => <ForcedDisplacementPopovers />,
+  parameters: { overlaidCaps: [] },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const doc = body(canvasElement)
+    const veto = 'Veto panel: onDismissRequest keeps me open'
+
+    // Identical semantics with every capability pinned off: the same
+    // interactions, now entirely kernel-managed in the portal fallback.
+    await userEvent.click(await canvas.findByText('Toggle veto popover'))
+    await doc.findByText(veto)
+    await userEvent.click(canvas.getByText('Toggle displacing popover'))
+    await doc.findByText('Displacing panel')
+    await expect(doc.getByText(veto)).toBeInTheDocument()
+
+    const plainPanel = doc
+      .getByText('Displacing panel')
+      .closest('[data-overlaid-popover]') as HTMLElement
+    await expect(plainPanel.getAttribute('popover')).toBeNull()
+
+    await userEvent.click(canvas.getByText(/Displacement \(opening a new/))
+    await waitFor(() =>
+      expect(doc.queryByText('Displacing panel')).not.toBeInTheDocument(),
+    )
+    await expect(doc.getByText(veto)).toBeInTheDocument()
+  },
+}
+
+export const CssAnchorPositioning: Story = {
+  name: 'CSS Anchor Positioning engine (closeOnScroll=false)',
+  render: () => <CssAnchorPlacements />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const doc = body(canvasElement)
+
+    const trigger = await canvas.findByText('top')
+    await userEvent.click(trigger)
+    const panel = (await doc.findByText('Anchored top')).closest(
+      '[data-overlaid-popover]',
+    ) as HTMLElement
+
+    // The CSS engine emits position-area (no Floating UI top/left), and the
+    // browser resolves it: the panel sits above its trigger with the offset.
+    await expect(panel.style.getPropertyValue('position-area')).toBe('top')
+    await waitFor(() => {
+      const panelRect = panel.getBoundingClientRect()
+      const triggerRect = trigger.getBoundingClientRect()
+      expect(panelRect.height).toBeGreaterThan(0)
+      expect(panelRect.bottom).toBeLessThanOrEqual(triggerRect.top + 1)
+    })
+
+    // Semantics unchanged: a (synthetic) Escape dismisses through the
+    // kernel's trust gate.
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(doc.queryByText('Anchored top')).not.toBeInTheDocument(),
+    )
   },
 }
 

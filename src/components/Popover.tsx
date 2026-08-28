@@ -85,7 +85,8 @@ function PopoverRoot({
       label: accessibilityLabel,
       insets,
     },
-    { placement, offset },
+    // closeOnScroll rides along for positioning-engine selection only.
+    { placement, offset, closeOnScroll },
   )
   const onScrollDismiss = useCallback(() => {
     context.actions.requestDismiss('scroll')

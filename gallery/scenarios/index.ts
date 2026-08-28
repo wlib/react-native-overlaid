@@ -29,6 +29,7 @@ import {
 import {
   BasicPopover,
   CloseOnScrollPopover,
+  CssAnchorPlacements,
   DisplacingPopovers,
   ForcedDisplacementPopovers,
   NonDismissablePopover,
@@ -47,6 +48,7 @@ import {
 import {
   DialogFromDrawer,
   KitchenSink,
+  NestedPopovers,
   PopoverInDialog,
   TooltipInSheet,
 } from './stacking'
@@ -291,6 +293,14 @@ export const scenarios: Scenario[] = [
     smokeText: 'must not dismiss the popover',
   },
   {
+    key: 'popover-css-anchor',
+    family: 'Popover',
+    title: 'CSS anchor placements (closeOnScroll=false)',
+    description:
+      'With closeOnScroll=false and no boundary, supporting browsers position these panels with CSS Anchor Positioning (position-area + try fallbacks); Floating UI runs everywhere else. Semantics are identical either way.',
+    Component: CssAnchorPlacements,
+  },
+  {
     key: 'popover-forced-displacement',
     family: 'Popover',
     title: 'Displacement vs non-dismissable vs veto',
@@ -359,6 +369,15 @@ export const scenarios: Scenario[] = [
       'Escape closes the popover first; a press inside the dialog closes the popover but not the dialog (parentEntryId spares ancestors).',
     Component: PopoverInDialog,
     smokeText: 'Dialog with a popover',
+  },
+  {
+    key: 'stacking-nested-popovers',
+    family: 'Stacking',
+    title: 'Popover inside popover',
+    description:
+      'Nested transients: a press inside the outer panel closes only the inner popover; escape unwinds inner → outer. On web both panels ride the browser popover stack (nesting fidelity via the invoker relationship).',
+    Component: NestedPopovers,
+    smokeText: 'Outer panel',
   },
   {
     key: 'stacking-dialog-above-drawer',

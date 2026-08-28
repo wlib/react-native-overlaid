@@ -53,6 +53,13 @@ export interface LayerEntry {
   readonly id: string
   readonly behavior: Behavior
   readonly parentEntryId: string | null
+  /**
+   * Which instrument owns this entry's user-gesture dismissal. `platform`
+   * entries self-report through their own platform events (popover `toggle`,
+   * dialog `cancel`/`close`), so the planners must not fire a trusted
+   * gesture at them a second time (R1). Absent means `managed`.
+   */
+  readonly channel?: 'managed' | 'platform' | undefined
   readonly panelRef: NodeRef
   readonly triggerRef: NodeRef
   /** Last synchronous page-space bounds, used by non-DOM outside presses. */
@@ -69,6 +76,13 @@ export interface LayerEntry {
  */
 export type DispatchOutcome = 'handled' | 'swallowed' | 'unhandled'
 
+/**
+ * Untrusted (synthetic) input never triggers the browser's own light
+ * dismiss or close watchers, so platform-channel delegation only stands
+ * down the kernel for `trusted` gestures. Omitted means trusted.
+ */
+export type DispatchOptions = Readonly<{ trusted?: boolean }>
+
 export interface LayerHost {
   readonly name: string
   readonly parent: LayerHost | null
@@ -82,9 +96,13 @@ export interface LayerHost {
   readonly detachChild: (child: LayerHost) => void
   readonly closeAll: () => boolean
   readonly dismissTransient: (exceptId?: string | null) => boolean
-  readonly dispatchEscape: () => DispatchOutcome
-  readonly dispatchBackButton: () => DispatchOutcome
-  readonly dispatchOutsidePress: (point: Point, target: unknown) => boolean
+  readonly dispatchEscape: (options?: DispatchOptions) => DispatchOutcome
+  readonly dispatchBackButton: (options?: DispatchOptions) => DispatchOutcome
+  readonly dispatchOutsidePress: (
+    point: Point,
+    target: unknown,
+    options?: DispatchOptions,
+  ) => boolean
 }
 
 export function assertNever(value: never): never {

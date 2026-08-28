@@ -131,6 +131,8 @@ export function Tooltip({
     },
     {
       placement,
+      // closeOnScroll rides along for positioning-engine selection only.
+      closeOnScroll,
       ...(boundaryRef !== undefined ? { boundaryRef } : {}),
     },
   )

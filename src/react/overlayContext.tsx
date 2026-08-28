@@ -10,6 +10,7 @@ import type {
   Phase,
 } from '../core/types'
 import type { AnchoredPosition } from './anchoredPosition'
+import type { DismissChannel } from './dismissChannel'
 
 export type CrossPlatformStyle = StyleProp<ViewStyle> | CSSProperties
 export type SlotOverride = {
@@ -60,6 +61,13 @@ export type OverlayContextValue = {
   kind: OverlayKind
   behavior: Behavior
   dismissable: boolean
+  /**
+   * Which instrument owns this instance's user-gesture dismissal for the
+   * current presentation: `managed` (kernel listeners, today's machinery)
+   * or `delegated` (the platform runs the dismissal contract and the chrome
+   * self-reports its outcomes). Mechanism only — semantics are identical.
+   */
+  dismissChannel: DismissChannel
   role: OverlayRole
   panelId: string
   titleId: string

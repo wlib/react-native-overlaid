@@ -151,6 +151,36 @@ export function ForcedDisplacementPopovers() {
   )
 }
 
+export function CssAnchorPlacements() {
+  return (
+    <View style={{ gap: 16 }}>
+      <Paragraph>
+        closeOnScroll=false with no boundary: on supporting browsers these
+        panels are positioned by CSS Anchor Positioning (position-area) so
+        scrolling tracks the anchor frame-synced; elsewhere Floating UI runs
+        unchanged.
+      </Paragraph>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
+        {(['top', 'bottom', 'left', 'right'] as const).map((placement) => (
+          <Popover
+            key={placement}
+            placement={placement}
+            offset={8}
+            closeOnScroll={false}
+          >
+            <Popover.Trigger>
+              <Text>{placement}</Text>
+            </Popover.Trigger>
+            <Popover.Content>
+              <Text>{`Anchored ${placement}`}</Text>
+            </Popover.Content>
+          </Popover>
+        ))}
+      </View>
+    </View>
+  )
+}
+
 export function CloseOnScrollPopover() {
   return (
     <View style={{ height: 800, paddingTop: 40 }}>

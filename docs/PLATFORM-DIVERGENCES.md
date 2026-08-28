@@ -42,7 +42,16 @@ variables, and honors `prefers-reduced-motion`.
 ## Anchored geometry
 
 Web delegates Popover and Tooltip placement to Floating UI and continuously
-updates it while the reference or floating element changes.
+updates it while the reference or floating element changes. One exception:
+with `closeOnScroll={false}`, no `boundaryRef`, and CSS Anchor Positioning
+support, placement is expressed as `position-area` with `position-try`
+fallbacks instead, so scroll tracking is frame-synced by the browser.
+Sub-pixel placement can differ between the two engines, CSS has no
+continuous shift (panels near viewport corners flip rather than slide), and
+overflow is judged against the containing block rather than numeric
+`insets`. Semantics (what opens, closes, dismisses) are identical either
+way; everything else — the default `closeOnScroll`, any `boundaryRef`, and
+unsupporting browsers — runs Floating UI exactly as before.
 
 Native measurement is asynchronous. The package uses `measure()`'s
 `pageX/pageY`, which agrees with responder event coordinates on Android
@@ -61,6 +70,31 @@ at the root host. `<dialog onCancel>` only prevents the browser's duplicate
 close. Chrome can still force-close a dialog under its close-request rules, so
 the `close` event reconciles browser state with the kernel and reopens a
 refused dialog. The Popover API's `toggle` event is reconciled similarly.
+
+On web, each instance additionally resolves a dismissal *channel* once per
+presentation. A vetoless, dismissable instance delegates its dismissal
+mechanics to the browser where the platform can run the whole contract for
+its kind — popovers join the `popover="auto"` light-dismiss stack, tooltips
+the hint stack, and dialog/drawer/sheet hosts render `closedby` — while any
+instance with `onDismissRequest` or `dismissable={false}` stays on the
+kernel-managed machinery (the veto cannot survive a channel the browser
+owns). The split is mechanism-only: what opens, closes, and vetoes is
+identical in both channels, and the public API does not change. Two
+consequences worth knowing:
+
+- Delegation stands the kernel down only for *trusted* input, because the
+  browser ignores synthetic events for light dismiss and close requests.
+  Test suites that dispatch synthetic Escape/pointerdown (jsdom, Storybook
+  plays, `userEvent`) therefore keep working unchanged: the kernel handles
+  those gestures itself.
+- A browser-initiated close is a fait accompli that hides the platform
+  surface immediately, so a delegated overlay closed by the browser skips
+  the exit transition its kernel-closed twin would run. Kernel-driven
+  closes (including all synthetic input) keep the exit phase on every
+  engine.
+
+Native resolves every instance to the managed channel; nothing changes
+there.
 
 Native has no global outside-press channel. An anchored surface renders a
 window-sized invisible underlay. If that underlay covers another registered

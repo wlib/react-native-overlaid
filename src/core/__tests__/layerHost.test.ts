@@ -88,6 +88,119 @@ describe('layer host execution', () => {
   })
 })
 
+describe('platform-channel execution (delegated instruments)', () => {
+  function platformLayer(
+    id: string,
+    behavior: Behavior,
+    fire: jest.Mock,
+    parentEntryId: string | null = null,
+  ): LayerEntry {
+    return { ...layer(id, behavior, fire, parentEntryId), channel: 'platform' }
+  }
+
+  it('reports unhandled for a delegated Escape without firing or swallowing', () => {
+    const root = createLayerHost('root', null)
+    const child = createLayerHost('child', root)
+    root.attachChild(child)
+    const parentFire = jest.fn(() => true)
+    const platformFire = jest.fn(() => true)
+    root.push(layer('root-layer', 'auto', parentFire))
+    child.push(platformLayer('platform-modal', 'modal', platformFire))
+
+    // 'unhandled' lets the browser's default action run (that action IS the
+    // dismissal), and the gesture must not leak into the parent host.
+    expect(child.dispatchEscape()).toBe('unhandled')
+    expect(platformFire).not.toHaveBeenCalled()
+    expect(parentFire).not.toHaveBeenCalled()
+  })
+
+  it('handles Escape locally when a managed layer above accepts first', () => {
+    const host = createLayerHost('root', null)
+    const platformFire = jest.fn(() => true)
+    const managedFire = jest.fn(() => true)
+    host.push(platformLayer('platform', 'auto', platformFire))
+    host.push(layer('managed', 'auto', managedFire))
+
+    expect(host.dispatchEscape()).toBe('handled')
+    expect(managedFire).toHaveBeenCalledWith('escape')
+    expect(platformFire).not.toHaveBeenCalled()
+  })
+
+  it('treats untrusted input as kernel-owned for platform layers', () => {
+    const host = createLayerHost('root', null)
+    const platformFire = jest.fn(() => true)
+    host.push(platformLayer('platform', 'auto', platformFire))
+
+    expect(host.dispatchEscape({ trusted: false })).toBe('handled')
+    expect(platformFire).toHaveBeenCalledWith('escape')
+
+    platformFire.mockClear()
+    expect(
+      host.dispatchOutsidePress({ x: 0, y: 0 }, null, { trusted: false }),
+    ).toBe(true)
+    expect(platformFire).toHaveBeenCalledWith('outside-press')
+  })
+
+  it('skips platform layers on trusted outside press but closes managed ones', () => {
+    const host = createLayerHost('root', null)
+    const platformFire = jest.fn(() => true)
+    const managedFire = jest.fn(() => true)
+    host.push(layer('managed', 'auto', managedFire))
+    host.push(platformLayer('platform', 'auto', platformFire))
+
+    expect(host.dispatchOutsidePress({ x: 0, y: 0 }, null)).toBe(true)
+    expect(managedFire).toHaveBeenCalledWith('outside-press')
+    expect(platformFire).not.toHaveBeenCalled()
+  })
+
+  it('reclaims a delegated Escape the platform never acted on', () => {
+    jest.useFakeTimers()
+    try {
+      const host = createLayerHost('root', null)
+      const platformFire = jest.fn(() => true)
+      host.push(platformLayer('platform', 'auto', platformFire))
+
+      expect(host.dispatchEscape()).toBe('unhandled')
+      expect(platformFire).not.toHaveBeenCalled()
+
+      // No browser close arrived: the fallback fires the planned event at
+      // the same entry so the key is never dead.
+      jest.advanceTimersByTime(250)
+      expect(platformFire).toHaveBeenCalledWith('escape')
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('leaves a delegated Escape alone once the platform handled it', () => {
+    jest.useFakeTimers()
+    try {
+      const host = createLayerHost('root', null)
+      const platformFire = jest.fn(() => true)
+      host.push(platformLayer('platform', 'auto', platformFire))
+
+      expect(host.dispatchEscape()).toBe('unhandled')
+      // The browser light-dismissed it and the entry unregistered before
+      // the fallback beat: nothing to reclaim.
+      host.remove('platform')
+      jest.advanceTimersByTime(250)
+      expect(platformFire).not.toHaveBeenCalled()
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('still force-displaces platform transients (kernel-owned displacement)', () => {
+    const host = createLayerHost('root', null)
+    const platformFire = jest.fn(() => true)
+    host.push(platformLayer('platform', 'auto', platformFire))
+    host.push(layer('opening', 'auto', jest.fn()))
+
+    expect(host.dismissTransient('opening')).toBe(true)
+    expect(platformFire).toHaveBeenCalledWith('outside-press', { force: true })
+  })
+})
+
 describe('layer host maintenance', () => {
   it('updates without promotion and only notifies for real removal', () => {
     const host = createLayerHost('root', null)

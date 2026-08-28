@@ -6,7 +6,22 @@ import {
   type Step,
 } from './arbitration'
 import { BEHAVIOR, type BehaviorTable } from './behaviorPolicy'
-import type { DispatchOutcome, LayerEntry, LayerHost, Point } from './types'
+import type {
+  DispatchOptions,
+  DispatchOutcome,
+  LayerEntry,
+  LayerHost,
+  Point,
+} from './types'
+
+/**
+ * How long a delegated key gesture may go unanswered before the kernel
+ * reclaims it (see scheduleDelegatedKeyFallback). Long enough for any real
+ * close request to have landed (they run in the same event turn; the
+ * reporting toggle/close is one queued task), short enough that a genuinely
+ * dead key still feels responsive.
+ */
+export const DELEGATED_KEY_FALLBACK_MS = 200
 
 export type LayerHostOptions = Readonly<{
   behaviors?: BehaviorTable
@@ -125,9 +140,15 @@ export function createLayerHost(
     return null
   }
 
-  const execute = (steps: readonly Step[]): boolean => {
+  type Execution = Readonly<{ handled: boolean; delegated: boolean }>
+
+  const execute = (steps: readonly Step[]): Execution => {
     let handled = false
     for (const step of steps) {
+      // A delegated step hands the rest of the gesture to the platform: the
+      // entry self-reports through its own channel and nothing below it may
+      // receive the same gesture from the kernel.
+      if (step.delegated) return { handled, delegated: true }
       // Resolve against live membership: earlier callbacks may remove layers.
       const entry = stack.find((candidate) => candidate.id === step.id)
       const accepted = !entry
@@ -138,27 +159,67 @@ export function createLayerHost(
       handled ||= accepted
       if (step.stopAlways || (accepted && step.stopIfHandled)) break
     }
-    return handled
+    return { handled, delegated: false }
   }
 
   const hasBlocker = (): boolean =>
     stack.some((entry) => behaviors[entry.behavior].blocksBelow)
 
-  const dispatchEscape = (): DispatchOutcome => {
-    if (execute(planEscape(stack, behaviors))) return 'handled'
-    if (hasBlocker()) return 'swallowed'
-    return parent?.dispatchEscape() ?? 'unhandled'
+  // Right of first refusal, not blind trust: when a key gesture is handed
+  // to a platform-channel entry, the browser normally dismisses it within
+  // the same event turn. Some environments deliver trusted key events whose
+  // UA close-request handling never runs (observed with CDP-style key
+  // injection), which would leave the key dead. The fallback re-fires the
+  // planned event at the same entry after a beat; if the platform did act,
+  // the entry is dying (fire refuses via the already-dismissing guard) or
+  // already unregistered, so the double delivery is absorbed by design.
+  const scheduleDelegatedKeyFallback = (steps: readonly Step[]): void => {
+    const delegated = steps.find((step) => step.delegated)
+    if (!delegated) return
+    setTimeout(() => {
+      const entry = stack.find((candidate) => candidate.id === delegated.id)
+      entry?.fire(delegated.event)
+    }, DELEGATED_KEY_FALLBACK_MS)
   }
 
-  const dispatchBackButton = (): DispatchOutcome => {
-    if (execute(planBackButton(stack, behaviors))) return 'handled'
+  const dispatchEscape = (options?: DispatchOptions): DispatchOutcome => {
+    const trusted = options?.trusted ?? true
+    const steps = planEscape(stack, behaviors, trusted)
+    const result = execute(steps)
+    if (result.handled) return 'handled'
+    // A delegated layer owns this gesture: the platform will act on it, so
+    // the kernel must neither swallow the input (its default action IS the
+    // dismissal) nor route the same gesture into a parent host.
+    if (result.delegated) {
+      scheduleDelegatedKeyFallback(steps)
+      return 'unhandled'
+    }
     if (hasBlocker()) return 'swallowed'
-    return parent?.dispatchBackButton() ?? 'unhandled'
+    return parent?.dispatchEscape(options) ?? 'unhandled'
   }
 
-  const dispatchOutsidePress = (point: Point, target: unknown): boolean => {
+  const dispatchBackButton = (options?: DispatchOptions): DispatchOutcome => {
+    const trusted = options?.trusted ?? true
+    const steps = planBackButton(stack, behaviors, trusted)
+    const result = execute(steps)
+    if (result.handled) return 'handled'
+    if (result.delegated) {
+      scheduleDelegatedKeyFallback(steps)
+      return 'unhandled'
+    }
+    if (hasBlocker()) return 'swallowed'
+    return parent?.dispatchBackButton(options) ?? 'unhandled'
+  }
+
+  const dispatchOutsidePress = (
+    point: Point,
+    target: unknown,
+    options?: DispatchOptions,
+  ): boolean => {
     const containerId = findContainerId(target, point)
-    return execute(planOutsidePress(stack, containerId, behaviors))
+    const trusted = options?.trusted ?? true
+    return execute(planOutsidePress(stack, containerId, behaviors, trusted))
+      .handled
   }
 
   const closeAll = (): boolean => {
@@ -203,7 +264,8 @@ export function createLayerHost(
     },
     closeAll,
     dismissTransient: (exceptId) =>
-      execute(planTransientDisplacement(stack, exceptId ?? null, behaviors)),
+      execute(planTransientDisplacement(stack, exceptId ?? null, behaviors))
+        .handled,
     dispatchEscape,
     dispatchBackButton,
     dispatchOutsidePress,

@@ -120,7 +120,10 @@ describe('web Popover API synchronization', () => {
     const panel = document.querySelector(
       '[data-overlaid-popover]',
     ) as HTMLElement
-    expect(panel.getAttribute('popover')).toBe('manual')
+    // A vetoless dismissable popover auto-delegates to the browser's light-
+    // dismiss stack (Approach B); the managed 'manual' pin lives on the
+    // non-dismissable instance below.
+    expect(panel.getAttribute('popover')).toBe('auto')
     expect(panel.matches(':popover-open')).toBe(true)
   })
 
@@ -145,6 +148,9 @@ describe('web Popover API synchronization', () => {
     const refusedPanel = document.querySelector(
       '[data-overlaid-popover]',
     ) as HTMLElement
+    // dismissable={false} forces the managed channel (R2): the kernel stays
+    // the only light-dismiss authority, so the attribute remains 'manual'.
+    expect(refusedPanel.getAttribute('popover')).toBe('manual')
     act(() => {
       refusedPanel.hidePopover()
       jest.advanceTimersByTime(20)

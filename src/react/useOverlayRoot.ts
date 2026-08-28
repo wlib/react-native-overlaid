@@ -139,6 +139,7 @@ function useAssembledContext(
       kind: spec.kind,
       behavior: spec.behavior,
       dismissable: spec.dismissable ?? true,
+      dismissChannel: lifecycle.dismissChannel,
       role: spec.role,
       panelId,
       titleId,

@@ -7,7 +7,7 @@ in every state on web and iOS.
 ## The scenario registry
 
 [`gallery/scenarios/`](../gallery/scenarios) is the single source of truth
-for demo/QA scenarios (34 scenarios across Dialog, Sheet, Drawer, Popover,
+for demo/QA scenarios (36 scenarios across Dialog, Sheet, Drawer, Popover,
 Tooltip, and Stacking). Each scenario is a pure React Native component, so
 the same code drives:
 
@@ -43,6 +43,22 @@ timing notes are documented inline in the stories:
 - a dismissed modal's layer-host entry unregisters one passive-effect pass
   after its DOM unmounts, and an exiting modal still swallows Escape by
   design (`Stacking.stories.tsx`).
+
+Two capability facts shape the web plays:
+
+- **Capability pinning.** `.storybook/preview.ts` honors an
+  `overlaid-caps` URL param (used by the screenshot pipeline) and a
+  per-story `parameters.overlaidCaps` list (a set of capabilities forced
+  on, everything else off) applied by a loader before each render, so a
+  pinned story cannot leak into the next. Stories without either run under
+  real detection.
+- **Untrusted input.** Play-test events (`userEvent`, dispatched Events)
+  are untrusted, and real browsers never run light dismiss or close
+  watchers for untrusted input. Delegated (browser-channel) overlays
+  therefore route synthetic gestures through the kernel (the trust gate),
+  which is itself a pinned behavior; the *real* browser-initiated paths are
+  exercised by driving the platform JS APIs (`hidePopover()`,
+  `dialog.close()`, dispatching `cancel`) as fait-accompli events.
 
 ## The example app (iOS/Android)
 

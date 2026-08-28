@@ -4,6 +4,7 @@
 // Interprets: mounted state -> modal <dialog>; phase -> ::backdrop reveal.
 // Reports: real show, backdrop press, and browser-forced close.
 import { useEffect, useLayoutEffect, useRef } from 'react'
+import { sniffDismissCause } from '../react/dismissInputRecord'
 import { flattenToCss } from '../react/flattenStyle'
 import { useOverlayContext } from '../react/overlayContext'
 import type { ModalContainerProps } from './ModalContainer'
@@ -15,8 +16,17 @@ export function ModalContainer({
   backdrop,
   horizontalPadding,
 }: ModalContainerProps) {
-  const { state, signals, actions, panelId, exitMs, a11y, kind, insets } =
-    useOverlayContext()
+  const {
+    state,
+    signals,
+    actions,
+    panelId,
+    exitMs,
+    a11y,
+    kind,
+    insets,
+    dismissChannel,
+  } = useOverlayContext()
   const dialogRef = useRef<HTMLDialogElement | null>(null)
   const pressStartedOnBackdrop = useRef(false)
   // Changing modal/modeless ownership on a live <dialog> requires a close
@@ -26,6 +36,24 @@ export function ModalContainer({
   // A backdrop-free Dialog/Drawer is genuinely modeless on web. Sheets keep
   // modal top-layer behavior even when only their visual scrim is disabled.
   const usesModalTopLayer = hasBackdrop || kind === 'sheet'
+  // Delegated instances hand close-request detection (Escape and friends)
+  // to the browser via `closedby`; the kernel's root keydown stands down for
+  // them. The close itself stays kernel-driven (see onCancel), which keeps
+  // the mounted-through-exit architecture on every engine.
+  const delegated = dismissChannel === 'delegated'
+  // `closedby` mapping, decided against this chrome's real geometry: the
+  // host <dialog> spans the viewport (it IS the backdrop container), so for
+  // top-layer hosts no pointerdown can ever land outside the element and
+  // `closedby="any"` light dismiss would be dead — backdrop presses remain
+  // this chrome's own classifier (below) for both channels. A modeless host
+  // has pointer-events:none instead, so page presses genuinely land outside
+  // it and `any` gives real browser light dismiss, matching the managed
+  // outside-press semantics the kernel planners stand down from.
+  const closedBy = delegated
+    ? usesModalTopLayer
+      ? 'closerequest'
+      : 'any'
+    : undefined
   const backdropStyle = backdrop ? flattenToCss(backdrop.style) : undefined
 
   useLayoutEffect(() => {
@@ -34,7 +62,13 @@ export function ModalContainer({
 
     let frame: number | undefined
     try {
-      if (state.isMounted && !dialog.open) {
+      // Keyed on isOpen, not isMounted: a browser-forced close the kernel
+      // accepted leaves the host natively closed through the exit phase, so
+      // a reopen mid-exit (dismissing -> presented, isMounted never
+      // flipping) must re-show. During `dismissing` (mounted, not open)
+      // neither branch runs: a kernel-driven close keeps the host open
+      // through its exit and closes at unmount.
+      if (state.isOpen && !dialog.open) {
         showDialog(dialog, usesModalTopLayer)
         frame = requestAnimationFrame(signals.onHostShown)
       } else if (!state.isMounted && dialog.open) {
@@ -47,7 +81,7 @@ export function ModalContainer({
     return () => {
       if (frame !== undefined) cancelAnimationFrame(frame)
     }
-  }, [signals, state.isMounted, usesModalTopLayer])
+  }, [signals, state.isMounted, state.isOpen, usesModalTopLayer])
 
   // The dialog close algorithm restores pre-show focus only while the node
   // remains connected. React removal alone can leave focus on <body>.
@@ -80,6 +114,11 @@ export function ModalContainer({
       data-overlaid-has-backdrop={hasBackdrop ? 'true' : 'false'}
       data-overlaid-modal-mode={usesModalTopLayer ? 'modal' : 'modeless'}
       data-overlaid-reveal=""
+      {...(closedBy !== undefined
+        ? // lib.dom/React do not know the attribute yet; lowercase unknown
+          // attributes pass through to the DOM untouched.
+          ({ closedby: closedBy } as Record<string, string>)
+        : {})}
       {...a11y.host}
       className={backdrop ? backdrop.className : undefined}
       style={{
@@ -108,10 +147,26 @@ export function ModalContainer({
             : undefined,
         pointerEvents: usesModalTopLayer ? undefined : 'none',
       }}
-      onCancel={(event) => event.preventDefault()}
-      onClose={() => {
+      onCancel={(event) => {
+        // React re-dispatches these non-delegated DOM events through fiber
+        // ancestors, so a nested dialog's cancel also reaches this handler;
+        // only the event's own host may act on it.
+        if (event.target !== event.currentTarget) return
+        // Both channels prevent the browser's own close: it would tear the
+        // host out of the top layer before the exit phase can run. Managed
+        // instances already received the gesture through the kernel's root
+        // keydown; a delegated instance hears it only here (the kernel
+        // stood down), so the cancelable proposal routes into the kernel,
+        // which then drives the close through the normal lifecycle.
+        event.preventDefault()
+        if (delegated) actions.requestDismiss('escape')
+      }}
+      onClose={(event) => {
+        if (event.target !== event.currentTarget) return
         if (!state.isOpen) return
-        const dismissed = actions.requestDismiss('escape')
+        const dismissed = actions.requestDismiss(
+          delegated ? sniffDismissCause('escape') : 'escape',
+        )
         if (dismissed) return
         try {
           const dialog = dialogRef.current

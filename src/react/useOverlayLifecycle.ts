@@ -26,6 +26,10 @@ import type {
   Phase,
   PresentGate,
 } from '../core/types'
+import {
+  resolveDismissChannel,
+  type DismissChannel,
+} from './dismissChannel'
 import { useOptionalLayerHost } from './LayerHostContext'
 
 export type OverlayLifecycleInput = {
@@ -71,6 +75,23 @@ export function useOverlayLifecycle(input: OverlayLifecycleInput) {
   )
   const stateRef = useRef(state)
   stateRef.current = state
+
+  // Which instrument owns this instance's user-gesture dismissal (report
+  // §6.2), snapshotted once per mounted presentation like the dialog's
+  // modal/modeless mode: adding a veto or flipping `dismissable` while a
+  // surface is live must not re-wire a platform mechanism mid-flight, so
+  // such prop changes take effect on the next presentation.
+  const channelRef = useRef<DismissChannel | null>(null)
+  if (state.phase === 'unmounted') {
+    channelRef.current = null
+  } else if (channelRef.current === null) {
+    channelRef.current = resolveDismissChannel({
+      kind: input.kind,
+      dismissable: input.dismissable,
+      hasVeto: input.onDismissRequest !== undefined,
+    })
+  }
+  const dismissChannel: DismissChannel = channelRef.current ?? 'managed'
 
   // Eagerly advance the ref as well as React state. Multiple dismissal inputs
   // in one event turn must observe the first transition's dying state.
@@ -163,13 +184,22 @@ export function useOverlayLifecycle(input: OverlayLifecycleInput) {
       id,
       behavior: input.behavior,
       parentEntryId: input.parentEntryId ?? null,
+      channel: dismissChannel === 'delegated' ? 'platform' : 'managed',
       panelRef,
       triggerRef,
       boundsRef,
       fire,
     })
     registeredHost.current = host
-  }, [fire, host, id, input.behavior, input.parentEntryId, isMounted])
+  }, [
+    dismissChannel,
+    fire,
+    host,
+    id,
+    input.behavior,
+    input.parentEntryId,
+    isMounted,
+  ])
 
   useEffect(
     () => () => {
@@ -230,6 +260,7 @@ export function useOverlayLifecycle(input: OverlayLifecycleInput) {
   return useMemo(
     () => ({
       id,
+      dismissChannel,
       state: {
         phase: state.phase,
         isMounted: state.phase !== 'unmounted',
@@ -246,6 +277,7 @@ export function useOverlayLifecycle(input: OverlayLifecycleInput) {
       actions: { setOpen, toggle, requestClose, requestDismiss },
     }),
     [
+      dismissChannel,
       id,
       onExitComplete,
       onHostDismissed,

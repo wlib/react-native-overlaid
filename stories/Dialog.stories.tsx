@@ -43,6 +43,34 @@ export const Basic: Story = {
   },
 }
 
+export const DelegatedCloseRequest: Story = {
+  name: 'Delegated close request: browser cancel routes through the kernel',
+  render: () => <BasicDialog />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    await userEvent.click(await canvas.findByText('Open dialog'))
+    const doc = body(canvasElement)
+    await doc.findByText('Basic dialog')
+
+    // A vetoless dismissable dialog auto-delegates where closedby ships:
+    // the kernel's keydown stands down and the browser's close watcher owns
+    // Escape, surfacing as a cancelable `cancel` proposal.
+    const dialog = canvasElement.ownerDocument.querySelector(
+      'dialog[data-overlaid-modal]',
+    ) as HTMLDialogElement
+    await expect(dialog.getAttribute('closedby')).toBe('closerequest')
+
+    // Drive the proposal itself (synthetic input cannot reach the real
+    // close watcher): the chrome must preventDefault it and close through
+    // the kernel lifecycle — dialog still open, exit phase running.
+    dialog.dispatchEvent(new Event('cancel', { cancelable: true }))
+    await expect(dialog.open).toBe(true)
+    await waitFor(() =>
+      expect(doc.queryByText('Basic dialog')).not.toBeInTheDocument(),
+    )
+  },
+}
+
 export const NonDismissable: Story = {
   render: () => <NonDismissableDialog />,
   play: async ({ canvasElement }) => {

@@ -37,6 +37,7 @@ the native and browser family integrations in `components/__tests__/`;
 | Popover  | Close on scroll     | page/anchor movement dismisses                                  | `react/__tests__/useAnchorScrollDismiss.test.tsx` and `.web.test.tsx`; `families.web`                                  | complete |
 | Popover  | Scroll inside       | panel scrolling is exempt                                       | `families.web`; `react/__tests__/useAnchorScrollDismiss.web.test.tsx`                                                  | complete |
 | Popover  | Force vs veto       | force bypasses dismissable; veto outranks force                 | `families`; `react/__tests__/useOverlayLifecycle.test.tsx`                                                             | complete |
+| Popover  | CSS anchor engine   | `closeOnScroll={false}` + no boundary uses `position-area`; Floating UI elsewhere | `react/__tests__/cssAnchorPosition.test.ts`; `react/__tests__/useAnchoredPosition.web.test.tsx`; CssAnchorPositioning play | complete |
 | Tooltip  | Hover/focus/tap     | web hover/focus, touch/native tap behavior                      | `families` and `families.web`                                                                                          | complete |
 | Tooltip  | Escape              | WCAG keyboard dismissal; Android back remains unconsumed        | `families.web`; `core/__tests__/behaviorPolicy.test.ts`                                                                | complete |
 | Tooltip  | Hint vs auto        | opening hint never displaces deliberate popover                 | `families` and `families.web`                                                                                          | complete |
@@ -46,6 +47,7 @@ the native and browser family integrations in `components/__tests__/`;
 | Stacking | Popover in dialog   | nested transient unwinds before modal; ancestor spared          | `families` and `families.web` consecutive back/Escape                                                                  | complete |
 | Stacking | Dialog above drawer | modal layers unwind top-down                                    | `core/__tests__/layerHost.test.ts` stack ordering; manual composed modal check                                         | complete |
 | Stacking | Tooltip in sheet    | anchored content renders in sheet window/host                   | `sheet-native` local-host back route; `families` native portal/context bridge                                          | complete |
+| Stacking | Popover in popover  | inner transient unwinds first; press inside outer spares it     | NestedDelegatedPopovers play; `scenarios.test.tsx` smoke row                                                           | complete |
 | Stacking | Three deep          | tooltip -> popover -> dialog dismissal order                    | `core/__tests__/arbitration.test.ts`/`layerHost.test.ts`; manual three-deep check                                      | complete |
 
 ## Cross-cutting checks
@@ -65,6 +67,7 @@ the native and browser family integrations in `components/__tests__/`;
 | Styling contract    | data-\*/custom-property contract renders on every web surface; layered defaults lose to consumer CSS; `unstyled` = attribute | `families.web` data/var assertions; `stories/*.stories.tsx` state assertions; `docs/STYLING.md`                                                               | complete |
 | Capability duality  | web chrome runs under enhanced and fallback capability pins via one registry                                                 | `chrome/__tests__/webCapabilities.web.test.tsx`; `AnchoredContainer.popoverApi/.fallback` overrides; `overlaid-caps` preview hook + screenshots fallback pass | complete |
 | Exit reconciliation | CSS `transitionend`/`animationend` completes an exit early; `exitMs` stays the ceiling                                       | `chrome/__tests__/useExitTransition.web.test.tsx`; `react/__tests__/useOverlayLifecycle.test.tsx` timer ceiling                                               | complete |
+| Dismissal channels  | vetoless instances auto-delegate per kind × capability (R2 forces managed for veto/non-dismissable); channel snapshotted per presentation; kernel stands down for trusted gestures only; reopen-mid-exit re-asserts a browser-hidden surface | `react/__tests__/dismissChannel.web.test.tsx`; `families.delegated.web.test.tsx` (all-caps mix; `families.web` is the no-caps mix); channel-aware planner/host rows in `core/__tests__`; mixed/nested/cross-mode plays | complete |
 
 ## Intended improvements verified
 
@@ -83,16 +86,16 @@ MDN/WHATWG/caniuse in the 2026-08 design review, not from memory.
 
 | Feature                                                           | Chrome/Edge | Firefox     | Safari      | Library stance                                                     |
 | ----------------------------------------------------------------- | ----------- | ----------- | ----------- | ------------------------------------------------------------------ |
-| Popover API core (`auto`/`manual`, `:popover-open`, `::backdrop`) | 114         | 125         | 17.0        | adopted (top-layer anchoring; portal fallback below)               |
-| `popover="hint"`                                                  | 133         | 149         | not shipped | passed through; invalid-value default `manual` degrades gracefully |
+| Popover API core (`auto`/`manual`, `:popover-open`, `::backdrop`) | 114         | 125         | 17.0        | adopted (top-layer anchoring; portal fallback below). Vetoless dismissable popovers auto-delegate as `popover="auto"` (browser light dismiss/Escape/auto stack); veto/non-dismissable stay `manual` under the kernel |
+| `popover="hint"`                                                  | 133         | 149         | not shipped | passed through; invalid-value default `manual` degrades gracefully. Where detected, tooltips auto-delegate into the browser hint stack |
 | `showPopover({source})`                                           | 137 full    | 144 full    | 26.0 full   | adopted unconditionally (older engines ignore the options bag)     |
-| CSS Anchor Positioning core                                       | 125         | 147         | 26.0        | not adopted (Floating UI remains the engine); registry entry ready |
-| `position-visibility`                                             | 125         | 147         | 26.2        | not adopted                                                        |
-| `<dialog closedby>`                                               | 134         | 141         | TP only     | not adopted (Safari-blocking); registry entry ready                |
+| CSS Anchor Positioning core                                       | 125         | 147         | 26.0        | adopted for `closeOnScroll={false}` without `boundaryRef`; Floating UI remains the engine everywhere else (incl. the scroll-dismissing default) |
+| `position-visibility`                                             | 125         | 147         | 26.2        | adopted (`anchors-visible`) when the CSS anchor engine runs        |
+| `<dialog closedby>`                                               | 134         | 141         | TP only     | adopted as the delegated-channel close-request detector for vetoless dismissable modals; Safari (and any veto) runs today's managed machinery |
 | `dialog.requestClose()`                                           | 134         | 139         | 18.4        | not adopted                                                        |
 | `@starting-style` / `allow-discrete`                              | 117         | 129         | 17.5/17.4   | not adopted (gate sequencing already provides two-pass entry)      |
 | CSS `overlay` property                                            | 117         | none        | none        | not adopted (mounted-through-exit works on every engine)           |
-| `interestfor` + `InterestEvent`                                   | 142         | not shipped | opposed     | not adopted; JS hover-intent engine is the permanent primary path  |
+| `interestfor` + `InterestEvent`                                   | 142         | not shipped | opposed     | not adopted; JS hover-intent engine is the permanent primary path (and the attribute needs an always-mounted target, conflicting with mount-on-open) |
 | `@layer` / cascade layers                                         | 99          | 97          | 15.4        | adopted (styles.css layer architecture, `docs/STYLING.md`)         |
 
 ## Web capability adoption
@@ -109,6 +112,10 @@ reconciliation before it ships (report §3): (a) cancelable proposal,
 | CSS reveal motion (`@layer overlaid.motion`) | n/a (no dismissal authority)                    | `transitionend` → early `onExitComplete`; `exitMs` timer is the ceiling | `chrome/__tests__/useExitTransition.web.test.tsx`                 |
 | `showPopover({source})`                      | n/a (metadata only)                             | none required                                                           | covered by popover-api suite (mock accepts the options bag)       |
 | Hover intent (JS engine)                     | c (timers)                                      | kernel decides via `setOpen`; warmth registry host-scoped               | `react/__tests__/useHoverIntent.web.test.tsx`; Tooltip play tests |
+| Delegated `popover="auto"` light dismiss     | b (`toggle(closed)`, sniffed cause)             | kernel stands down for trusted gestures (planners); untrusted gestures stay kernel-owned (browser inert); accepted fait accompli reported, defensive re-assert on refusal | `AnchoredContainer.delegated.web.test.tsx`; `families.delegated.web.test.tsx`; MixedChannels/NestedDelegatedPopovers plays |
+| Delegated `<dialog closedby>` close request  | a (`cancel` prevented, routed) then b (`close`) | close stays kernel-driven so the exit phase runs; forced `close` reported with sniffed cause, no re-show when accepted; host-level 200 ms fallback reclaims unanswered keys | `ModalContainer.delegated.web.test.tsx`; `layerHost.test.ts` fallback cases; DelegatedCloseRequest/BrowserForcedCloseInNestedStack plays |
+| Kernel displacement across channels          | c (kernel policy; browser auto stack doubles it) | dying-guard + notify latch absorb the same-press browser light dismiss  | `arbitration.test.ts`/`layerHost.test.ts` displacement rows; DisplacementVsNonDismissable play (pinned) |
+| CSS Anchor Positioning (`position-area`)     | n/a (positioning only)                          | none required (gated: `closeOnScroll={false}`, no boundary, capability) | `react/__tests__/cssAnchorPosition.test.ts`; `useAnchoredPosition.web.test.tsx`; CssAnchorPositioning play |
 
 ## Device/browser QA findings (2026-08-26 session)
 

@@ -16,6 +16,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import type { OverlayRole } from '../core/types'
+import { sniffDismissCause } from '../react/dismissInputRecord'
 import { flattenToCss } from '../react/flattenStyle'
 import {
   useAnchoredOverlayContext,
@@ -75,8 +76,15 @@ export function AnchoredContainer({
     anchored,
     exitMs,
     kind,
+    dismissChannel,
   } = context
   const supportsPopover = hasWebCapability('popover')
+  // Delegated instances live in the browser's own light-dismiss stacks
+  // (`auto` for popovers, the hint stack for tooltips): the browser owns
+  // outside-press, Escape, and auto-stack displacement for them, and the
+  // kernel's planners stand down for trusted gestures (channel resolution
+  // guarantees they are vetoless, so a browser close can only be accepted).
+  const delegated = dismissChannel === 'delegated'
 
   const composeRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -100,7 +108,14 @@ export function AnchoredContainer({
     const element = elementRef.current
     if (!element || !supportsPopover) return
     try {
-      if (state.isMounted && !isPopoverOpen(element)) {
+      // Keyed on isOpen, not isMounted: a delegated instance's platform
+      // surface is hidden by the BROWSER at dismissal start, so a reopen
+      // mid-exit (dismissing -> presented, isMounted never flipping) must
+      // re-assert showPopover. Managed surfaces stay :popover-open through
+      // the exit, so the same reopen is a no-op for them; during
+      // `dismissing` (mounted, not open) neither branch runs and the
+      // mounted-through-exit architecture holds.
+      if (state.isOpen && !isPopoverOpen(element)) {
         showPopoverFrom(element, refs.trigger.current)
       } else if (!state.isMounted && isPopoverOpen(element)) {
         element.hidePopover()
@@ -109,7 +124,7 @@ export function AnchoredContainer({
       // Browser light-dismiss and StrictMode can race this effect. The
       // toggle listener below is the source of truth after the operation.
     }
-  }, [refs.trigger, state.isMounted, supportsPopover])
+  }, [refs.trigger, state.isMounted, state.isOpen, supportsPopover])
 
   // Close while still connected, then restore focus if it remained inside.
   useLayoutEffect(() => {
@@ -148,9 +163,15 @@ export function AnchoredContainer({
       if (isPopoverOpen(element)) return
       if (!state.isOpen) return
 
-      // Browser-initiated close must be reconciled with the kernel. If the
-      // kernel refuses, restore the platform surface it still owns.
-      const dismissed = actions.requestDismiss('escape')
+      // Browser-initiated close must be reconciled with the kernel. A
+      // delegated close is a fait accompli whose cause the queued toggle
+      // cannot carry, so it is sniffed from the recent root input (falling
+      // back to the browser-forced-close precedent). If the kernel refuses
+      // — impossible for a delegated instance short of a mid-presentation
+      // prop flip — restore the platform surface it still owns.
+      const dismissed = actions.requestDismiss(
+        delegated ? sniffDismissCause('escape') : 'escape',
+      )
       if (!dismissed && element.isConnected) {
         try {
           showPopoverFrom(element, refs.trigger.current)
@@ -161,7 +182,7 @@ export function AnchoredContainer({
     }
     element.addEventListener('toggle', onToggle)
     return () => element.removeEventListener('toggle', onToggle)
-  }, [actions, refs.trigger, signals, state.isOpen, supportsPopover])
+  }, [actions, delegated, refs.trigger, signals, state.isOpen, supportsPopover])
 
   useEffect(() => {
     if (readyReported.current || !state.isMounted || !anchored.isPositioned) {
@@ -192,7 +213,14 @@ export function AnchoredContainer({
         ...flattenToCss(style),
       }}
       {...(supportsPopover
-        ? { popover: behavior === 'hint' ? 'hint' : 'manual' }
+        ? {
+            // Hints always pass the attribute through (invalid-value default
+            // `manual` degrades gracefully); a delegated popover joins the
+            // browser's `auto` stack, a managed one stays `manual` so the
+            // kernel remains the only light-dismiss authority for it.
+            popover:
+              behavior === 'hint' ? 'hint' : delegated ? 'auto' : 'manual',
+          }
         : {})}
     >
       {children}

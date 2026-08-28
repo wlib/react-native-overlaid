@@ -16,6 +16,7 @@ import {
   type LayerHostOptions,
 } from '../core/layerHost'
 import type { LayerEntry, LayerHost } from '../core/types'
+import { recordDismissInput } from './dismissInputRecord'
 
 const LayerHostContext = createContext<LayerHost | null>(null)
 
@@ -28,10 +29,21 @@ function useRootDismissListeners(host: LayerHost): void {
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape' || event.defaultPrevented) return
-      const outcome = deepestAttachedDescendant(host).dispatchEscape()
+      // Delegated (platform-channel) layers report browser-initiated closes
+      // as queued tasks with no cause attached; the record lets them sniff
+      // this input as the cause within a short window.
+      recordDismissInput('escape')
+      // Untrusted (synthetic) Escapes never reach the browser's close
+      // watchers, so the kernel keeps handling delegated layers for them.
+      // For trusted input the kernel stands down and must not preventDefault
+      // — the default action IS the delegated layer's dismissal.
+      const outcome = deepestAttachedDescendant(host).dispatchEscape({
+        trusted: event.isTrusted,
+      })
       if (outcome !== 'unhandled') event.preventDefault()
     }
     const onPointerDown = (event: PointerEvent) => {
+      recordDismissInput('pointerdown')
       const target = event.target as { matches?: (selector: string) => boolean }
       // ModalContainer owns <dialog> backdrop classification. Letting the
       // global listener also classify that same pointerdown would produce an
@@ -40,6 +52,7 @@ function useRootDismissListeners(host: LayerHost): void {
       deepestAttachedDescendant(host).dispatchOutsidePress(
         { x: event.clientX, y: event.clientY },
         event.target,
+        { trusted: event.isTrusted },
       )
     }
 

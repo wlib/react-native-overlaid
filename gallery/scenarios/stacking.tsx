@@ -84,6 +84,33 @@ export function DialogFromDrawer() {
   )
 }
 
+export function NestedPopovers() {
+  return (
+    <Popover>
+      <Popover.Trigger>
+        <Text>Open outer popover</Text>
+      </Popover.Trigger>
+      <Popover.Content>
+        <View style={{ gap: 12, alignItems: 'flex-start', maxWidth: 280 }}>
+          <Text style={{ fontWeight: '600' }}>Outer panel</Text>
+          <Popover placement="right-start">
+            <Popover.Trigger>
+              <Text>Toggle inner popover</Text>
+            </Popover.Trigger>
+            <Popover.Content>
+              <Text>Inner panel</Text>
+            </Popover.Content>
+          </Popover>
+          <Paragraph>
+            A press here (inside the outer panel) closes only the inner
+            popover; escape unwinds inner first, then outer.
+          </Paragraph>
+        </View>
+      </Popover.Content>
+    </Popover>
+  )
+}
+
 export function TooltipInSheet() {
   const [open, setOpen] = useState(false)
   const insets = useGalleryInsets()
