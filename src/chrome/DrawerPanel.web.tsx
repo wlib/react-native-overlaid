@@ -6,6 +6,7 @@
 import type { CSSProperties, RefCallback } from 'react'
 import { flattenToCss } from '../react/flattenStyle'
 import { useOverlayContext } from '../react/overlayContext'
+import { stylingAttributes, useOverlayStyling } from '../react/overlayStyling'
 import type { DrawerPanelProps } from './DrawerPanel'
 import { useExitTransition } from './useExitTransition'
 
@@ -22,6 +23,7 @@ export function DrawerPanel({
   children,
 }: DrawerPanelProps) {
   const context = useOverlayContext()
+  const styling = useOverlayStyling()
   const {
     accessibilityViewIsModal: _nativeModal,
     accessibilityLabel: _nativeLabel,
@@ -41,6 +43,7 @@ export function DrawerPanel({
       data-overlaid-side={side}
       data-overlaid-reveal=""
       {...(unstyled ? { 'data-overlaid-unstyled': '' } : {})}
+      {...stylingAttributes(styling)}
       {...surfaceA11y}
       aria-label={accessibilityLabel}
       className={className}

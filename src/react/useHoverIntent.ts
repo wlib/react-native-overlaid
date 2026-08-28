@@ -27,6 +27,14 @@ export type HoverIntentConfig = {
   closeGraceMs: number
 }
 
+/**
+ * A thunk defers resolution to the moment a timer is armed, so values that
+ * come from the DOM (the CSS timing tokens, read at first hover) reach the
+ * engine without a render in between.
+ */
+export type HoverIntentConfigInput =
+  HoverIntentConfig | (() => HoverIntentConfig)
+
 export type HoverIntentCallbacks = {
   onOpen: () => void
   onClose: () => void
@@ -65,7 +73,7 @@ type Timer = ReturnType<typeof setTimeout>
 export function useHoverIntent(
   host: LayerHost | null,
   isOpen: boolean,
-  config: HoverIntentConfig,
+  config: HoverIntentConfigInput,
   callbacks: HoverIntentCallbacks,
 ): HoverIntentHandle {
   const openTimer = useRef<Timer | null>(null)
@@ -91,7 +99,7 @@ export function useHoverIntent(
       clearTimer(openTimer)
     } else {
       warmth.openHints = Math.max(0, warmth.openHints - 1)
-      const { warmthMs } = configRef.current
+      const { warmthMs } = resolveConfig(configRef.current)
       if (warmthMs !== false) warmth.warmUntil = Date.now() + warmthMs
       clearTimer(closeTimer)
     }
@@ -106,7 +114,7 @@ export function useHoverIntent(
       if (!isOpenRef.current) return
       const warmth = warmthFor(hostRef.current)
       warmth.openHints = Math.max(0, warmth.openHints - 1)
-      const { warmthMs } = configRef.current
+      const { warmthMs } = resolveConfig(configRef.current)
       if (warmthMs !== false) warmth.warmUntil = Date.now() + warmthMs
     },
     [],
@@ -118,7 +126,7 @@ export function useHoverIntent(
       pointerEnter: () => {
         clearTimer(closeTimer)
         if (isOpenRef.current) return
-        const { delayMs } = configRef.current
+        const { delayMs } = resolveConfig(configRef.current)
         const warmth = warmthFor(hostRef.current)
         const instant =
           delayMs === false ||
@@ -142,7 +150,7 @@ export function useHoverIntent(
         closeTimer.current = setTimeout(() => {
           closeTimer.current = null
           callbacksRef.current.onClose()
-        }, configRef.current.closeGraceMs)
+        }, resolveConfig(configRef.current).closeGraceMs)
       },
       focus: () => {
         clearTimer(openTimer)
@@ -163,4 +171,8 @@ function clearTimer(timer: { current: Timer | null }): void {
   if (timer.current === null) return
   clearTimeout(timer.current)
   timer.current = null
+}
+
+function resolveConfig(config: HoverIntentConfigInput): HoverIntentConfig {
+  return typeof config === 'function' ? config() : config
 }

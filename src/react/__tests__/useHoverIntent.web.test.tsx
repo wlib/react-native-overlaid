@@ -199,6 +199,28 @@ describe('useHoverIntent', () => {
     expect(onOpen).toHaveBeenCalledTimes(1)
   })
 
+  it('resolves a thunk config at the moment a timer is armed', () => {
+    const host = freshHost()
+    const onOpen = jest.fn()
+    const onClose = jest.fn()
+    // The delay source changes after mount — the way a CSS timing token
+    // only becomes readable at first hover.
+    let delayMs: number | false = 400
+    const rendered = renderHook(() =>
+      useHoverIntent(host, false, () => config({ delayMs }), {
+        onOpen,
+        onClose,
+      }),
+    )
+
+    delayMs = 100
+    act(() => rendered.result.current.pointerEnter())
+    advance(99)
+    expect(onOpen).not.toHaveBeenCalled()
+    advance(1)
+    expect(onOpen).toHaveBeenCalledTimes(1)
+  })
+
   it('an open from another channel drops a stale pending timer', () => {
     const host = freshHost()
     const { rendered, handle, onOpen } = setup(host)

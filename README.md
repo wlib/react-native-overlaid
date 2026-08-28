@@ -53,6 +53,11 @@ export function Root() {
 }
 ```
 
+On web, `OverlayHost` accepts `styling="none"` to stand the stylesheet's
+default visuals **and** reveal motion down app-wide for design systems that
+own everything (the UA resets always apply; ignored on native). See
+[docs/STYLING.md](./docs/STYLING.md) for what your CSS must then provide.
+
 See [examples/basic-overlays.tsx](./examples/basic-overlays.tsx) for all five
 families.
 
@@ -269,7 +274,11 @@ also call it. Use an explicit Close action after any confirmation flow.
   the previous behavior); for `warmth` ms after any tooltip in the same
   `OverlayHost` closes (default 700; `false` disables), hover opens
   instantly, so sweeping across a toolbar feels immediate. Focus-open and
-  touch/pen-toggle are always instant regardless of `timing`.
+  touch/pen-toggle are always instant regardless of `timing`. On web, an
+  unset member falls back to the `--overlaid-tooltip-delay`/`-warmth` CSS
+  tokens on the trigger (or any ancestor, e.g. `:root`) before the built-in
+  default — theme tooltip timing in CSS like the platform's own
+  `interest-delay` (see [docs/STYLING.md](./docs/STYLING.md)).
 - `children` is a trigger element or a render function receiving typed ref,
   interaction, open-state, and accessibility props.
 
@@ -359,7 +368,16 @@ un-reset.
 
 **A tooltip feels slow to appear on web.** That is the 400 ms hover-intent
 delay (first hover only; warm hovers are instant). Pass
-`timing={{ delay: false }}` to restore instant opens.
+`timing={{ delay: false }}` (or set `--overlaid-tooltip-delay: 0ms` in CSS)
+to restore instant opens.
+
+**A web overlay stays mounted longer than its `exitMs`.** By design: on web
+the exit transition is the source of truth — CSS that lengthens the exit
+(e.g. `--overlaid-duration-exit`, or a `transition` on the surface) delays
+unmount until it finishes, with a safety net at
+`max(exitMs, computed exit duration) + 100ms`. `onOpenChange(false)` still
+fires at dismissal start, so controlled state and analytics are unaffected.
+Native unmount timing is unchanged.
 
 **A native Sheet cannot load or Expo Go reports a missing native module.**
 Install TrueSheet, run pods/prebuild as applicable, and rebuild a development

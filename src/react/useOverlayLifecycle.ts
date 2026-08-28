@@ -26,6 +26,7 @@ import type {
   Phase,
   PresentGate,
 } from '../core/types'
+import { resolveExitCeilingMs } from './exitCeiling'
 import { useOptionalLayerHost } from './LayerHostContext'
 
 export type OverlayLifecycleInput = {
@@ -100,9 +101,12 @@ export function useOverlayLifecycle(input: OverlayLifecycleInput) {
       send({ type: 'exit-complete' })
       return
     }
+    // On web the chrome's transition accounting normally completes the exit
+    // first; this timer is the safety net, and its ceiling may exceed exitMs
+    // when the panel's computed CSS declares a longer exit (native: exitMs).
     const timer = setTimeout(
       () => send({ type: 'exit-complete' }),
-      input.exitMs,
+      resolveExitCeilingMs(input.exitMs, panelRef.current),
     )
     return () => clearTimeout(timer)
   }, [input.exitMs, send, state.phase])

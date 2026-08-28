@@ -65,8 +65,8 @@ class ResizeObserverStub {
   ResizeObserverStub
 
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { StrictMode } = require('react') as typeof ReactModule
-const { act, render } =
+const { StrictMode, useState } = require('react') as typeof ReactModule
+const { act, fireEvent, render, screen } =
   require('@testing-library/react') as typeof TestingLibraryModule
 const { Text } = require('react-native') as typeof ReactNativeModule
 const { OverlayHost } =
@@ -93,6 +93,23 @@ const ui = (
       dismissable={dismissable}
       closeOnScroll={false}
     >
+      <Popover.Trigger>
+        {({ ref }) => (
+          <button ref={ref as Ref<HTMLButtonElement>} type="button">
+            trigger
+          </button>
+        )}
+      </Popover.Trigger>
+      <Popover.Content>
+        <Text>popover body</Text>
+      </Popover.Content>
+    </Popover>
+  </OverlayHost>
+)
+
+const controlledUi = (open: boolean) => (
+  <OverlayHost>
+    <Popover open={open} onOpenChange={() => {}} closeOnScroll={false}>
       <Popover.Trigger>
         {({ ref }) => (
           <button ref={ref as Ref<HTMLButtonElement>} type="button">
@@ -152,5 +169,110 @@ describe('web Popover API synchronization', () => {
 
     expect(refused).not.toHaveBeenCalledWith(false)
     expect(refusedPanel.matches(':popover-open')).toBe(true)
+  })
+
+  it('re-asserts an accepted browser close on reopen mid-exit', () => {
+    // An accepted light-dismiss leaves the surface natively hidden while
+    // the kernel runs its exit (the element itself stays mounted), so a
+    // reopen inside the exit budget must call showPopover again — the show
+    // branch is keyed on isOpen, which isMounted keying would miss.
+    function Harness() {
+      const [open, setOpen] = useState(true)
+      return (
+        <OverlayHost>
+          <button type="button" onClick={() => setOpen(true)}>
+            reopen
+          </button>
+          <Popover open={open} onOpenChange={setOpen} closeOnScroll={false}>
+            <Popover.Trigger>
+              {({ ref }) => (
+                <button ref={ref as Ref<HTMLButtonElement>} type="button">
+                  trigger
+                </button>
+              )}
+            </Popover.Trigger>
+            <Popover.Content>
+              <Text>popover body</Text>
+            </Popover.Content>
+          </Popover>
+        </OverlayHost>
+      )
+    }
+    render(<Harness />)
+    act(() => jest.advanceTimersByTime(20))
+    const panel = document.querySelector(
+      '[data-overlaid-popover]',
+    ) as HTMLElement
+
+    act(() => {
+      panel.hidePopover()
+      jest.advanceTimersByTime(20)
+    })
+    expect(panel.matches(':popover-open')).toBe(false)
+    expect(panel.isConnected).toBe(true)
+
+    fireEvent.click(screen.getByText('reopen'))
+    act(() => jest.advanceTimersByTime(20))
+    expect(panel.matches(':popover-open')).toBe(true)
+    expect(panel.dataset.overlaidPhase).not.toBe('dismissing')
+  })
+})
+
+// §7.3.2: with discrete transitions + the overlay property, the chrome
+// closes the platform popover at dismissal start (CSS keeps it painted via
+// allow-discrete/overlay) and unmounts at the accounting drain. The same
+// prototype mocks provide the platform; only the capability pins differ.
+describe('close-first exits (discreteTransitions + overlayProperty)', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+    setWebCapabilityOverrides({
+      popover: true,
+      discreteTransitions: true,
+      overlayProperty: true,
+    })
+  })
+  afterEach(() => {
+    jest.useRealTimers()
+    setWebCapabilityOverrides({ popover: true })
+  })
+
+  it('hides the platform popover at dismissal start and unmounts at drain', () => {
+    const view = render(controlledUi(true))
+    act(() => jest.advanceTimersByTime(20))
+    const panel = document.querySelector(
+      '[data-overlaid-popover]',
+    ) as HTMLElement
+    expect(panel.matches(':popover-open')).toBe(true)
+
+    view.rerender(controlledUi(false))
+    expect(panel.matches(':popover-open')).toBe(false)
+    expect(panel.dataset.overlaidPhase).toBe('dismissing')
+    expect(document.querySelector('[data-overlaid-popover]')).not.toBeNull()
+
+    // No transition ever starts in jsdom: the two-frame accounting path
+    // completes the exit (the queued toggle from hidePopover fires along
+    // the way and must be absorbed, not re-reported).
+    act(() => jest.advanceTimersByTime(60))
+    expect(document.querySelector('[data-overlaid-popover]')).toBeNull()
+  })
+
+  it('re-shows the platform popover on reopen-mid-exit', () => {
+    const view = render(controlledUi(true))
+    act(() => jest.advanceTimersByTime(20))
+    const panel = document.querySelector(
+      '[data-overlaid-popover]',
+    ) as HTMLElement
+
+    view.rerender(controlledUi(false))
+    expect(panel.matches(':popover-open')).toBe(false)
+
+    view.rerender(controlledUi(true))
+    expect(panel.matches(':popover-open')).toBe(true)
+    // The interrupted exit must not complete against the reopened overlay:
+    // the same panel stays mounted and platform-shown once timers settle.
+    act(() => jest.advanceTimersByTime(50))
+    expect(document.querySelector('[data-overlaid-popover]')).toBe(panel)
+    expect(panel.matches(':popover-open')).toBe(true)
+    expect(panel.dataset.overlaidPhase).not.toBe('dismissing')
   })
 })

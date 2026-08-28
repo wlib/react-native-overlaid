@@ -41,8 +41,20 @@ variables, and honors `prefers-reduced-motion`.
 
 ## Anchored geometry
 
-Web delegates Popover and Tooltip placement to Floating UI and continuously
-updates it while the reference or floating element changes.
+Web delegates Popover and Tooltip placement to one of two engines. Floating
+UI is the default: it continuously updates `--overlaid-x`/`--overlaid-y`
+custom properties (realized by a motion-layer `translate3d`) while the
+reference or floating element changes. When the browser supports CSS Anchor
+Positioning AND the instance has no `boundaryRef` AND `closeOnScroll` is
+`false`, the browser itself becomes the engine: the trigger carries an
+inline `anchor-name`, the panel is placed via `position-area` with
+`position-try-fallbacks`, and no JS runs per scroll frame. The engine is
+chosen once per mount; `data-overlaid-placement` reflects the resolved
+placement under Floating UI but the _requested_ one under CSS anchoring
+(whose fallbacks flip without telling JS). Known engine divergences: CSS
+anchoring has no continuous shift (panels near viewport corners can
+overhang where Floating UI would slide) and its `-start`/`-end` spans map
+physically (LTR), see `docs/STYLING.md`.
 
 Native measurement is asynchronous. The package uses `measure()`'s
 `pageX/pageY`, which agrees with responder event coordinates on Android
@@ -77,9 +89,27 @@ consume Android back.
 ## Animation and lifecycle
 
 CSS owns web transitions, React Native `Animated` owns native dialog/drawer/
-anchored transitions, and the operating system owns TrueSheet animation. The
-kernel keeps content mounted during `dismissing` for an `exitMs` budget. Chrome
-that knows its real completion, notably TrueSheet, can report it earlier.
+anchored transitions, and the operating system owns TrueSheet animation.
+
+`exitMs` means different things per platform — a deliberate divergence. On
+native it is the exit animation's duration and the unmount ceiling. On web,
+transition accounting is the primary exit truth: the chrome counts the
+surface's own `transitionrun`/`transitionend`/`transitioncancel` pairs
+during `dismissing` and unmounts when they drain (immediately, two frames
+in, when no transition ever starts). `exitMs` demotes to the _floor of the
+safety net_: the fallback timer fires at `max(exitMs, computed exit
+duration) + 100ms`, so consumer CSS can lengthen an exit
+(`--overlaid-duration-exit`) as well as shorten it. Chrome that knows its
+real completion, notably TrueSheet, still reports it directly.
+
+Where the browser supports discrete transitions and the CSS `overlay`
+property (Chromium), web exits are additionally close-first: the platform
+surface (`hidePopover()`/`dialog.close()`) closes at dismissal start and
+the stylesheet's `allow-discrete`/`overlay` transition keeps it painted in
+the top layer through the exit — so a dying popover stops intercepting
+pointer events and dialog focus restoration happens at close start.
+Elsewhere the surface stays platform-open through `dismissing`, exactly as
+before.
 
 Reopening during exit reuses the mounted platform surface and carries already
 satisfied presentation gates. Consumers should render from their `open` state;
@@ -138,7 +168,11 @@ Web Tooltip opens for mouse hover and keyboard focus and toggles for touch or
 pen. Native Tooltip is tap-to-toggle. The `timing` prop (hover-intent
 `delay`/`warmth`) is therefore web-only, like `closeOnScroll` nuances:
 native has no hover channel for the timers to govern, and focus/tap opens
-stay instant on both platforms.
+stay instant on both platforms. On web, an unset `timing` member also
+consults the `--overlaid-tooltip-delay`/`--overlaid-tooltip-warmth` CSS
+tokens on the trigger (read at first hover, cached per element) before the
+built-in defaults; native reads no stylesheet, so CSS-themed timing is
+web-only too.
 
 ## Safe areas
 

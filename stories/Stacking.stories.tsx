@@ -81,6 +81,36 @@ export const ClickInsideDialogSparesIt: Story = {
   },
 }
 
+export const BrowserForcedCloseInNestedStack: Story = {
+  name: 'Browser-forced dialog close spares the drawer beneath it',
+  render: () => <DialogFromDrawer />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const doc = body(canvasElement)
+
+    await userEvent.click(await canvas.findByText('Open drawer'))
+    await doc.findByText('Drawer layer')
+    await userEvent.click(doc.getByText('Open confirmation dialog'))
+    const title = await doc.findByText('Discard changes?')
+
+    // A real fait accompli on a still-mounted nested dialog: close() fires
+    // the platform close event, which React also re-dispatches through
+    // fiber ancestors — the drawer's chrome must ignore the child's event
+    // (target filter) while the dialog reports its own close to the kernel.
+    ;(title.closest('dialog') as HTMLDialogElement).close()
+    await waitFor(() =>
+      expect(doc.queryByText('Discard changes?')).not.toBeInTheDocument(),
+    )
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    await expect(doc.getByText('Drawer layer')).toBeInTheDocument()
+
+    await userEvent.keyboard('{Escape}')
+    await waitFor(() =>
+      expect(doc.queryByText('Drawer layer')).not.toBeInTheDocument(),
+    )
+  },
+}
+
 export const DialogAboveDrawer: Story = {
   render: () => <DialogFromDrawer />,
   play: async ({ canvasElement }) => {

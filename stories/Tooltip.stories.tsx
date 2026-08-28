@@ -120,6 +120,29 @@ export const DelayedThenInstant: Story = {
   },
 }
 
+export const DelayToken: Story = {
+  name: 'CSS token — --overlaid-tooltip-delay themes the intent delay',
+  render: () => (
+    <div style={{ ['--overlaid-tooltip-delay' as string]: '0ms' }}>
+      <HoverFocusTooltip />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const doc = body(canvasElement)
+    const trigger = await canvas.findByText('Hover or focus me')
+
+    // Cold hover, but the inherited token zeroes the intent delay: the
+    // 250 ms budget only fits the token path (the built-in delay is 400).
+    await userEvent.hover(trigger)
+    await doc.findByText(
+      'Shown on mouse hover and keyboard focus; hidden on leave/blur.',
+      undefined,
+      { timeout: 250 },
+    )
+  },
+}
+
 export const WithBoundary: Story = {
   render: () => <BoundedTooltip />,
 }

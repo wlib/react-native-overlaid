@@ -93,6 +93,27 @@ export function NonDismissablePopover() {
   )
 }
 
+export function PinnedPopover() {
+  return (
+    <View style={{ gap: 24 }}>
+      <Popover closeOnScroll={false}>
+        <Popover.Trigger>
+          <Text>Open pinned popover</Text>
+        </Popover.Trigger>
+        <Popover.Content>
+          <View style={{ maxWidth: 260 }}>
+            <Paragraph>
+              Pinned panel: I stay open while the page scrolls. Where the
+              browser has CSS Anchor Positioning, it tracks the anchor itself —
+              no JS position frames.
+            </Paragraph>
+          </View>
+        </Popover.Content>
+      </Popover>
+    </View>
+  )
+}
+
 export function ScrollInsidePopover() {
   return (
     <Popover>

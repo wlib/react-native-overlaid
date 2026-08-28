@@ -1,5 +1,6 @@
 import { fireEvent, render } from '@testing-library/react'
 import { ModalContainer } from '../ModalContainer'
+import { setWebCapabilityOverrides } from '../webCapabilities'
 
 const mockRequestDismiss = jest.fn<boolean, [string]>()
 const mockHostShown = jest.fn()
@@ -93,6 +94,80 @@ it('guards backdrop clicks and re-shows a browser-forced close the kernel refuse
   fireEvent(dialog, new Event('close'))
   expect(mockRequestDismiss).toHaveBeenCalledWith('escape')
   expect(dialog.open).toBe(true)
+})
+
+it('close-first exit: closes the platform dialog at dismissal start, keeps it rendered', () => {
+  setWebCapabilityOverrides({
+    discreteTransitions: true,
+    overlayProperty: true,
+  })
+  const presented = mockContext.state
+  const screen = render(
+    <ModalContainer>
+      <button type="button">inside</button>
+    </ModalContainer>,
+  )
+  const dialog = screen.container.querySelector('dialog') as HTMLDialogElement
+  expect(dialog.open).toBe(true)
+
+  // Dismissal start: the platform surface closes (the stylesheet's
+  // allow-discrete/overlay transition keeps it painted) while the chrome
+  // stays mounted until the exit accounting drains.
+  mockContext.state = {
+    phase: 'dismissing',
+    isMounted: true,
+    isOpen: false,
+    isPresented: false,
+  }
+  screen.rerender(
+    <ModalContainer>
+      <button type="button">inside</button>
+    </ModalContainer>,
+  )
+  expect(dialog.open).toBe(false)
+  expect(dialog.isConnected).toBe(true)
+  // The self-inflicted close must not report a dismissal.
+  expect(mockRequestDismiss).not.toHaveBeenCalled()
+
+  // Reopen-mid-exit restores the platform surface.
+  mockContext.state = presented
+  screen.rerender(
+    <ModalContainer>
+      <button type="button">inside</button>
+    </ModalContainer>,
+  )
+  expect(dialog.open).toBe(true)
+
+  screen.unmount()
+  mockContext.state = presented
+  setWebCapabilityOverrides(null)
+})
+
+it('without the capabilities the dialog stays open through dismissing', () => {
+  const presented = mockContext.state
+  const screen = render(
+    <ModalContainer>
+      <button type="button">inside</button>
+    </ModalContainer>,
+  )
+  const dialog = screen.container.querySelector('dialog') as HTMLDialogElement
+
+  mockContext.state = {
+    phase: 'dismissing',
+    isMounted: true,
+    isOpen: false,
+    isPresented: false,
+  }
+  screen.rerender(
+    <ModalContainer>
+      <button type="button">inside</button>
+    </ModalContainer>,
+  )
+  // Mounted-through-exit: the platform surface only closes at unmount.
+  expect(dialog.open).toBe(true)
+
+  screen.unmount()
+  mockContext.state = presented
 })
 
 it('snapshots modal ownership until the mounted presentation ends', () => {

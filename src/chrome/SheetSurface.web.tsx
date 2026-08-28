@@ -23,6 +23,7 @@ import {
 import { decideSheetRelease, releaseVelocity } from '../core/sheetGestures'
 import { flattenToCss } from '../react/flattenStyle'
 import { useOverlayContext } from '../react/overlayContext'
+import { stylingAttributes, useOverlayStyling } from '../react/overlayStyling'
 import { ModalContainer } from './ModalContainer'
 import type { SheetSurfaceProps } from './SheetSurface'
 import { useExitTransition } from './useExitTransition'
@@ -67,6 +68,7 @@ function DraggablePanel({
   children,
 }: Omit<SheetSurfaceProps, 'scrim'>) {
   const context = useOverlayContext()
+  const styling = useOverlayStyling()
   useExitTransition()
   const [viewport, setViewport] = useState(viewportHeight)
   const [presentationConfig, setPresentationConfig] = useState(() => ({
@@ -350,6 +352,7 @@ function DraggablePanel({
       data-overlaid-phase={context.state.phase}
       data-overlaid-reveal=""
       {...(isDragging ? { 'data-overlaid-dragging': '' } : {})}
+      {...stylingAttributes(styling)}
       {...surfaceA11y}
       aria-label={accessibilityLabel}
       className={className}
