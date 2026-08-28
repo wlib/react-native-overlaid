@@ -85,7 +85,7 @@ function PopoverRoot({
       label: accessibilityLabel,
       insets,
     },
-    { placement, offset },
+    { placement, offset, closeOnScroll },
   )
   const onScrollDismiss = useCallback(() => {
     context.actions.requestDismiss('scroll')

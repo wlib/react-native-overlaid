@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import { useExitTransition } from '../useExitTransition'
 
 const mockExitComplete = jest.fn()
@@ -31,6 +31,10 @@ function Harness() {
   )
 }
 
+function transitionEvent(type: string, propertyName = 'opacity') {
+  return Object.assign(new Event(type, { bubbles: true }), { propertyName })
+}
+
 beforeEach(() => {
   mockExitComplete.mockReset()
   mockContext.state.phase = 'dismissing'
@@ -60,7 +64,79 @@ describe('useExitTransition (web)', () => {
     screen.unmount()
   })
 
-  it('listens only while dismissing; without an event the exitMs timer owns completion', () => {
+  it('drains counted transitions before completing (multi-property exit)', () => {
+    const screen = render(<Harness />)
+    const panel = mockContext.refs.panel.current as HTMLElement
+
+    panel.dispatchEvent(transitionEvent('transitionrun', 'opacity'))
+    panel.dispatchEvent(transitionEvent('transitionrun', 'transform'))
+    panel.dispatchEvent(transitionEvent('transitionend', 'opacity'))
+    expect(mockExitComplete).not.toHaveBeenCalled()
+
+    panel.dispatchEvent(transitionEvent('transitionend', 'transform'))
+    expect(mockExitComplete).toHaveBeenCalledTimes(1)
+    screen.unmount()
+  })
+
+  it('treats transitioncancel as draining a counted transition', () => {
+    const screen = render(<Harness />)
+    const panel = mockContext.refs.panel.current as HTMLElement
+
+    panel.dispatchEvent(transitionEvent('transitionrun'))
+    expect(mockExitComplete).not.toHaveBeenCalled()
+    panel.dispatchEvent(transitionEvent('transitioncancel'))
+    expect(mockExitComplete).toHaveBeenCalledTimes(1)
+    screen.unmount()
+  })
+
+  it('ignores an uncounted transitioncancel (interrupted entry reveal)', () => {
+    const screen = render(<Harness />)
+    const panel = mockContext.refs.panel.current as HTMLElement
+
+    // The entry transition's run predates the dismissal subscription; its
+    // cancel must not complete the exit before the retargeted run arrives.
+    panel.dispatchEvent(transitionEvent('transitioncancel'))
+    expect(mockExitComplete).not.toHaveBeenCalled()
+
+    panel.dispatchEvent(transitionEvent('transitionrun'))
+    panel.dispatchEvent(transitionEvent('transitionend'))
+    expect(mockExitComplete).toHaveBeenCalledTimes(1)
+    screen.unmount()
+  })
+
+  it('completes after two frames when no transition begins', () => {
+    jest.useFakeTimers()
+    try {
+      const screen = render(<Harness />)
+      expect(mockExitComplete).not.toHaveBeenCalled()
+
+      act(() => jest.advanceTimersByTime(40))
+      expect(mockExitComplete).toHaveBeenCalledTimes(1)
+      screen.unmount()
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('holds the two-frame completion once a transition has begun', () => {
+    jest.useFakeTimers()
+    try {
+      const screen = render(<Harness />)
+      const panel = mockContext.refs.panel.current as HTMLElement
+
+      panel.dispatchEvent(transitionEvent('transitionrun'))
+      act(() => jest.advanceTimersByTime(200))
+      expect(mockExitComplete).not.toHaveBeenCalled()
+
+      panel.dispatchEvent(transitionEvent('transitionend'))
+      expect(mockExitComplete).toHaveBeenCalledTimes(1)
+      screen.unmount()
+    } finally {
+      jest.useRealTimers()
+    }
+  })
+
+  it('listens only while dismissing; without an event the ceiling timer owns completion', () => {
     mockContext.state.phase = 'presented'
     const screen = render(<Harness />)
     const panel = mockContext.refs.panel.current as HTMLElement

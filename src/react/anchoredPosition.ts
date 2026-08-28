@@ -9,6 +9,13 @@ export type AnchoredSpec = {
   offset?: number | undefined
   /** Optional flip/shift boundary. The window/viewport is used by default. */
   boundaryRef?: RefObject<unknown> | undefined
+  /**
+   * Web engine gate: only `false` (scroll keeps the overlay open) makes
+   * browser-tracked CSS Anchor Positioning worth engaging — under the
+   * default scroll-dismiss, tracking buys nothing and Floating UI keeps
+   * pixel parity with the fallback path. Ignored on native.
+   */
+  closeOnScroll?: boolean | undefined
 }
 
 export type AnchoredPositionOptions = AnchoredSpec & {
@@ -35,6 +42,12 @@ export function insetClippingRect(rect: Rect, insets?: OverlayInsets): Rect {
 export type AnchoredPosition = {
   panelStyle: Record<string, unknown>
   isPositioned: boolean
+  /**
+   * Web: the placement the chrome reflects as data-overlaid-placement —
+   * resolved (post-flip) under Floating UI; the *requested* placement under
+   * CSS Anchor Positioning, whose try-fallbacks flip without telling JS.
+   */
+  placement?: Placement | undefined
   refs: {
     anchor: RefCallback<unknown>
     surface: RefCallback<unknown>

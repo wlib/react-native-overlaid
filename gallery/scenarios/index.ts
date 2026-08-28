@@ -33,6 +33,7 @@ import {
   ForcedDisplacementPopovers,
   NonDismissablePopover,
   OutsidePressPopover,
+  PinnedPopover,
   PopoverPlacements,
   ScrollInsidePopover,
 } from './popover'
@@ -280,6 +281,15 @@ export const scenarios: Scenario[] = [
     description:
       'Page scroll dismisses. Web listens to real scroll events; native polls the anchor for drift — scroll the containing screen to see it.',
     Component: CloseOnScrollPopover,
+  },
+  {
+    key: 'popover-pinned',
+    family: 'Popover',
+    title: 'closeOnScroll={false} — pinned to the anchor',
+    description:
+      'Page scroll keeps it open. On web this is the gate for the CSS Anchor Positioning engine: the browser tracks the anchor; elsewhere Floating UI keeps updating it.',
+    Component: PinnedPopover,
+    smokeText: 'Pinned panel',
   },
   {
     key: 'popover-scroll-inside',

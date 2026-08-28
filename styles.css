@@ -16,6 +16,8 @@
  *   data-overlaid-side  = left | right          (drawer)
  *   data-overlaid-dragging                      (sheet drag in progress)
  *   data-overlaid-unstyled                      (consumer passed unstyled)
+ *   data-overlaid-styling  = none               (OverlayHost styling="none":
+ *                            defaults+motion stand down; reset still applies)
  */
 
 @layer overlaid.reset, overlaid.defaults, overlaid.motion;
@@ -80,13 +82,15 @@
 /* Default visuals (formerly src/components/defaultStyles.web.ts). Theme
  * tokens are consumer API; per-kind literals are their fallbacks. */
 @layer overlaid.defaults {
-  dialog[data-overlaid-has-backdrop='true']::backdrop {
+  dialog[data-overlaid-has-backdrop='true']:not(
+      [data-overlaid-styling='none']
+    )::backdrop {
     background-color: var(--overlaid-backdrop-color, rgb(0 0 0 / 0.3));
   }
 
   [data-overlaid-kind='dialog'][data-overlaid-part='surface']:not(
       [data-overlaid-unstyled]
-    ) {
+    ):not([data-overlaid-styling='none']) {
     background-color: var(--overlaid-surface-bg, #ffffff);
     border-radius: var(--overlaid-surface-radius, 16px);
     padding: 32px;
@@ -95,18 +99,22 @@
 
   /* The drawer surface keeps an opaque background even when unstyled —
    * matching the previous chrome, which painted it outside the defaults. */
-  [data-overlaid-kind='drawer'][data-overlaid-part='surface'] {
+  [data-overlaid-kind='drawer'][data-overlaid-part='surface']:not(
+      [data-overlaid-styling='none']
+    ) {
     background-color: var(--overlaid-surface-bg, #ffffff);
   }
   [data-overlaid-kind='drawer'][data-overlaid-part='surface']:not(
       [data-overlaid-unstyled]
-    ) {
+    ):not([data-overlaid-styling='none']) {
     padding: 16px;
     box-shadow: var(--overlaid-surface-shadow, 0 0 24px rgb(0 0 0 / 0.15));
   }
 
   /* Sheet has no unstyled prop; its surface defaults always apply. */
-  [data-overlaid-kind='sheet'][data-overlaid-part='surface'] {
+  [data-overlaid-kind='sheet'][data-overlaid-part='surface']:not(
+      [data-overlaid-styling='none']
+    ) {
     background-color: var(--overlaid-surface-bg, #ffffff);
     border-top-left-radius: var(--overlaid-surface-radius, 16px);
     border-top-right-radius: var(--overlaid-surface-radius, 16px);
@@ -115,7 +123,7 @@
 
   [data-overlaid-kind='popover'][data-overlaid-part='surface']:not(
       [data-overlaid-unstyled]
-    ) {
+    ):not([data-overlaid-styling='none']) {
     background-color: var(--overlaid-surface-bg, #ffffff);
     border-radius: var(--overlaid-surface-radius, 12px);
     padding: 16px;
@@ -124,7 +132,7 @@
 
   [data-overlaid-kind='tooltip'][data-overlaid-part='surface']:not(
       [data-overlaid-unstyled]
-    ) {
+    ):not([data-overlaid-styling='none']) {
     max-width: 256px;
     background-color: var(--overlaid-tooltip-bg, #111827);
     border-radius: var(--overlaid-surface-radius, 8px);
@@ -136,64 +144,144 @@
 /* Reveal motion (formerly inline styles in the web chrome). Entry works
  * because chromes mount with data-overlaid-state="closed" and the kernel's
  * presentation gates guarantee the flip to "open" lands in a later commit.
- * --overlaid-duration is written inline by each chrome from its exitMs. */
+ * --overlaid-duration is written inline by each chrome from its exitMs; the
+ * --overlaid-duration-enter/-exit theme tokens override it per direction
+ * (a transition samples its parameters from the destination state). JS
+ * reads the *computed* exit duration back at dismissal start, so a longer
+ * --overlaid-duration-exit genuinely delays unmount on web. */
 @layer overlaid.motion {
-  [data-overlaid-reveal] {
+  [data-overlaid-reveal]:not([data-overlaid-styling='none']) {
     transition-property: none;
-    transition-duration: var(--overlaid-duration, 200ms);
+    transition-duration: var(
+      --overlaid-duration-enter,
+      var(--overlaid-duration, 200ms)
+    );
     transition-timing-function: ease;
   }
+  [data-overlaid-reveal][data-overlaid-state='closed']:not(
+      [data-overlaid-styling='none']
+    ) {
+    transition-duration: var(
+      --overlaid-duration-exit,
+      var(--overlaid-duration, 200ms)
+    );
+  }
 
-  dialog[data-overlaid-has-backdrop='true']::backdrop {
+  dialog[data-overlaid-has-backdrop='true']:not(
+      [data-overlaid-styling='none']
+    )::backdrop {
     opacity: 0;
     transition: opacity
-      var(--overlaid-backdrop-duration, var(--overlaid-duration, 200ms)) ease;
+      var(
+        --overlaid-backdrop-duration,
+        var(--overlaid-duration-enter, var(--overlaid-duration, 200ms))
+      )
+      ease;
   }
-  dialog[data-overlaid-has-backdrop='true'][data-overlaid-phase='presented']::backdrop {
+  dialog[data-overlaid-has-backdrop='true'][data-overlaid-state='closed']:not(
+      [data-overlaid-styling='none']
+    )::backdrop {
+    transition-duration: var(
+      --overlaid-backdrop-duration,
+      var(--overlaid-duration-exit, var(--overlaid-duration, 200ms))
+    );
+  }
+  dialog[data-overlaid-has-backdrop='true'][data-overlaid-phase='presented']:not(
+      [data-overlaid-styling='none']
+    )::backdrop {
     opacity: var(--overlaid-backdrop-opacity, 1);
   }
 
-  [data-overlaid-kind='popover'][data-overlaid-part='surface'],
-  [data-overlaid-kind='tooltip'][data-overlaid-part='surface'] {
+  /* Floating UI emits --overlaid-x/-y; this translate3d realizes them (a
+   * CSS-anchor-positioned panel leaves them unset, so it is a no-op there).
+   * Compose your own transform on top by restating the translate3d, keyed
+   * off data-overlaid-placement for origin-aware motion. */
+  [data-overlaid-kind='popover'][data-overlaid-part='surface']:not(
+      [data-overlaid-styling='none']
+    ),
+  [data-overlaid-kind='tooltip'][data-overlaid-part='surface']:not(
+      [data-overlaid-styling='none']
+    ) {
     transition-property: opacity;
     opacity: 1;
+    transform: translate3d(var(--overlaid-x, 0px), var(--overlaid-y, 0px), 0);
   }
-  [data-overlaid-kind='popover'][data-overlaid-part='surface'][data-overlaid-state='closed'],
-  [data-overlaid-kind='tooltip'][data-overlaid-part='surface'][data-overlaid-state='closed'] {
+  [data-overlaid-kind='popover'][data-overlaid-part='surface'][data-overlaid-state='closed']:not(
+      [data-overlaid-styling='none']
+    ),
+  [data-overlaid-kind='tooltip'][data-overlaid-part='surface'][data-overlaid-state='closed']:not(
+      [data-overlaid-styling='none']
+    ) {
     opacity: 0;
   }
 
-  [data-overlaid-kind='dialog'][data-overlaid-part='surface'] {
+  [data-overlaid-kind='dialog'][data-overlaid-part='surface']:not(
+      [data-overlaid-styling='none']
+    ) {
     transition-property: opacity, transform;
     opacity: 1;
     transform: scale(1);
   }
-  [data-overlaid-kind='dialog'][data-overlaid-part='surface'][data-overlaid-state='closed'] {
+  [data-overlaid-kind='dialog'][data-overlaid-part='surface'][data-overlaid-state='closed']:not(
+      [data-overlaid-styling='none']
+    ) {
     opacity: 0;
     transform: scale(0.98);
   }
 
-  [data-overlaid-kind='drawer'][data-overlaid-part='surface'] {
+  [data-overlaid-kind='drawer'][data-overlaid-part='surface']:not(
+      [data-overlaid-styling='none']
+    ) {
     transition-property: transform;
     transform: translateX(0);
   }
-  [data-overlaid-kind='drawer'][data-overlaid-part='surface'][data-overlaid-state='closed'][data-overlaid-side='right'] {
+  [data-overlaid-kind='drawer'][data-overlaid-part='surface'][data-overlaid-state='closed'][data-overlaid-side='right']:not(
+      [data-overlaid-styling='none']
+    ) {
     transform: translateX(100%);
   }
-  [data-overlaid-kind='drawer'][data-overlaid-part='surface'][data-overlaid-state='closed'][data-overlaid-side='left'] {
+  [data-overlaid-kind='drawer'][data-overlaid-part='surface'][data-overlaid-state='closed'][data-overlaid-side='left']:not(
+      [data-overlaid-styling='none']
+    ) {
     transform: translateX(-100%);
   }
 
   /* The sheet's numbers are inputs, not styles: chrome writes the
    * translate/height custom properties every drag frame and the transition
    * itself lives here, muted while a drag is active. */
-  [data-overlaid-kind='sheet'][data-overlaid-part='surface'] {
+  [data-overlaid-kind='sheet'][data-overlaid-part='surface']:not(
+      [data-overlaid-styling='none']
+    ) {
     transition-property: transform, height;
     transform: translateX(-50%) translateY(var(--overlaid-sheet-translate, 0px));
     height: var(--overlaid-sheet-height, auto);
   }
-  [data-overlaid-kind='sheet'][data-overlaid-part='surface'][data-overlaid-dragging] {
+  [data-overlaid-kind='sheet'][data-overlaid-part='surface'][data-overlaid-dragging]:not(
+      [data-overlaid-styling='none']
+    ) {
     transition-duration: 0ms;
+  }
+
+  /* Close-first exits (Chromium: overlay is unsupported elsewhere). The
+   * chrome calls hidePopover()/close() at dismissal start and these
+   * discrete transitions keep the element — dialog ::backdrop included —
+   * rendered in the top layer until the exit reveal finishes. Engines
+   * without `overlay` never match, and there the chrome keeps the platform
+   * surface shown through the whole 'dismissing' phase instead. */
+  @supports (overlay: auto) and (transition-behavior: allow-discrete) {
+    [data-overlaid-kind='popover'][data-overlaid-part='surface']:not(
+        [data-overlaid-styling='none']
+      ),
+    [data-overlaid-kind='tooltip'][data-overlaid-part='surface']:not(
+        [data-overlaid-styling='none']
+      ) {
+      transition-property: opacity, display, overlay;
+      transition-behavior: allow-discrete;
+    }
+    dialog[data-overlaid-modal]:not([data-overlaid-styling='none']) {
+      transition-property: overlay, display;
+      transition-behavior: allow-discrete;
+    }
   }
 }
 

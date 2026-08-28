@@ -8,6 +8,7 @@ import {
   ForcedDisplacementPopovers,
   NonDismissablePopover,
   OutsidePressPopover,
+  PinnedPopover,
   PopoverPlacements,
   ScrollInsidePopover,
 } from '../gallery/scenarios'
@@ -127,6 +128,61 @@ export const CloseOnScroll: Story = {
       expect(
         doc.queryByText('I close when the page scrolls'),
       ).not.toBeInTheDocument(),
+    )
+  },
+}
+
+export const PinnedToAnchor: Story = {
+  name: 'closeOnScroll={false} — pinned (CSS anchor engine where capable)',
+  render: () => <PinnedPopover />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const doc = body(canvasElement)
+
+    await userEvent.click(await canvas.findByText('Open pinned popover'))
+    await doc.findByText(/Pinned panel/)
+
+    // A page scroll must NOT dismiss — this is the configuration where the
+    // css-anchor engine runs in a capable browser, so it also proves that
+    // engine presents (layout gate) and stays put through scroll events.
+    const win = canvasElement.ownerDocument.defaultView as Window
+    win.dispatchEvent(new Event('scroll'))
+    await new Promise((resolve) => setTimeout(resolve, 200))
+    const panel = doc
+      .getByText(/Pinned panel/)
+      .closest('[data-overlaid-popover]') as HTMLElement
+    await expect(panel.dataset.overlaidState).toBe('open')
+    await expect(panel.dataset.overlaidPlacement).toBe('bottom-start')
+  },
+}
+
+export const ExitDurationToken: Story = {
+  name: 'CSS token — --overlaid-duration-exit lengthens unmount',
+  render: () => (
+    <div style={{ ['--overlaid-duration-exit' as string]: '600ms' }}>
+      <BasicPopover />
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const doc = body(canvasElement)
+
+    await userEvent.click(await canvas.findByText('Toggle popover'))
+    await doc.findByText('Close')
+
+    // Escape starts the dismissal; the 120 ms exit budget would have
+    // unmounted long before 250 ms under timer-primary semantics. The
+    // token stretches the real transition, and accounting waits for it.
+    await userEvent.keyboard('{Escape}')
+    await new Promise((resolve) => setTimeout(resolve, 250))
+    const panel = doc
+      .getByText('Close')
+      .closest('[data-overlaid-popover]') as HTMLElement
+    await expect(panel.dataset.overlaidState).toBe('closed')
+
+    await waitFor(
+      () => expect(doc.queryByText('Close')).not.toBeInTheDocument(),
+      { timeout: 2000 },
     )
   },
 }

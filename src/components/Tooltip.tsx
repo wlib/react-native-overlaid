@@ -18,6 +18,7 @@ import {
   type ViewStyle,
 } from 'react-native'
 import { AnchoredContainer } from '../chrome/AnchoredContainer'
+import { hasWebCapability } from '../chrome/webCapabilities'
 import type { Placement } from '../react/anchoredPosition'
 import type { ContextBridge } from '../react/contextBridge'
 import { useOptionalLayerHost } from '../react/LayerHostContext'
@@ -26,8 +27,12 @@ import {
   type OverlayInsets,
   type TriggerA11yProps,
 } from '../react/overlayContext'
+import {
+  isInterestCapableTrigger,
+  readTooltipTimingTokens,
+} from '../react/tooltipTiming'
 import { useAnchorScrollDismiss } from '../react/useAnchorScrollDismiss'
-import { useHoverIntent } from '../react/useHoverIntent'
+import { useHoverIntent, type HoverIntentConfig } from '../react/useHoverIntent'
 import { useAnchoredOverlayRoot } from '../react/useOverlayRoot'
 import { useTriggerRegistration } from '../react/useTriggerRegistration'
 import * as defaults from './defaultStyles'
@@ -51,7 +56,9 @@ const HOVER_WARMTH_MS = 700
 /**
  * Web-only hover intent timing. Focus-open and touch/pen-toggle stay
  * instant regardless — keyboard users already paid the traversal cost,
- * and a tap is explicit intent.
+ * and a tap is explicit intent. On web, an unset member falls back to the
+ * `--overlaid-tooltip-delay`/`-warmth` CSS tokens on the trigger (read at
+ * first hover, cached per element) before the built-in default.
  */
 export type TooltipTiming = {
   /** ms of hover before opening; `false` = open immediately. Default 400. */
@@ -131,6 +138,7 @@ export function Tooltip({
     },
     {
       placement,
+      closeOnScroll,
       ...(boundaryRef !== undefined ? { boundaryRef } : {}),
     },
   )
@@ -140,20 +148,54 @@ export function Tooltip({
   // The hover intent engine owns web mouse timing: first hover in a host
   // waits `delay`, hovers while the host is warm open instantly, and
   // leaving grants a close grace. Native stays tap-to-toggle; the timers
-  // simply never start there.
+  // simply never start there. Config resolves per intent action (a thunk),
+  // so the CSS timing tokens on the trigger — unreadable before first
+  // hover — still beat the built-in defaults; explicit props beat both.
+  const timingDelay = timing?.delay
+  const timingWarmth = timing?.warmth
+  const triggerRef = context.refs.trigger
+  const resolveIntentConfig = useCallback((): HoverIntentConfig => {
+    const tokens = isWeb ? readTooltipTimingTokens(triggerRef.current) : null
+    return {
+      delayMs: timingDelay ?? tokens?.delayMs ?? HOVER_OPEN_DELAY_MS,
+      warmthMs: timingWarmth ?? tokens?.warmthMs ?? HOVER_WARMTH_MS,
+      closeGraceMs: HOVER_CLOSE_GRACE_MS,
+    }
+  }, [isWeb, timingDelay, timingWarmth, triggerRef])
   const intent = useHoverIntent(
     host,
     context.state.isOpen,
-    {
-      delayMs: timing?.delay ?? HOVER_OPEN_DELAY_MS,
-      warmthMs: timing?.warmth ?? HOVER_WARMTH_MS,
-      closeGraceMs: HOVER_CLOSE_GRACE_MS,
-    },
+    resolveIntentConfig,
     {
       onOpen: () => setOpen(true),
       onClose: () => setOpen(false),
     },
   )
+
+  // Where the platform has its own interest timer CSS, forward the timing
+  // onto qualifying triggers as real interest-delay values: inert until an
+  // interest invoker relationship exists, but any that does (a render-prop
+  // <button>/<a> a consumer wires up) runs on the same source of truth. A
+  // prop forwards as a literal; otherwise the token var() forwards so the
+  // platform resolves it itself.
+  useEffect(() => {
+    if (!isWeb || !hasWebCapability('interestDelayCss')) return
+    const trigger = triggerRef.current
+    if (!isInterestCapableTrigger(trigger)) return
+    const element = trigger as Element & ElementCSSInlineStyle
+    const start =
+      timingDelay === false
+        ? '0s'
+        : timingDelay !== undefined
+          ? `${timingDelay}ms`
+          : `var(--overlaid-tooltip-delay, ${HOVER_OPEN_DELAY_MS}ms)`
+    element.style.setProperty('interest-delay-start', start)
+    element.style.setProperty('interest-delay-end', `${HOVER_CLOSE_GRACE_MS}ms`)
+    return () => {
+      element.style.removeProperty('interest-delay-start')
+      element.style.removeProperty('interest-delay-end')
+    }
+  }, [isWeb, timingDelay, triggerRef])
 
   const onScrollDismiss = useCallback(() => {
     context.actions.requestDismiss('scroll')

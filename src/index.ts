@@ -22,7 +22,11 @@ export {
 } from './components/parts'
 
 // Required application host.
-export { OverlayHost, ROOT_HOST_NAME } from './react/OverlayHost'
+export {
+  OverlayHost,
+  ROOT_HOST_NAME,
+  type OverlayHostProps,
+} from './react/OverlayHost'
 
 // Portals and source-position context bridging for custom native overlays.
 export {

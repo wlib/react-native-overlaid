@@ -143,6 +143,43 @@ describe('web component-family parity', () => {
     expect(onDismissRequest).toHaveBeenCalledWith('backdrop-press')
   })
 
+  it('re-shows the dialog on reopen mid-exit after a forced browser close', () => {
+    // An accepted browser-forced close leaves the host natively closed
+    // through the exit phase, so a reopen inside the exit budget must call
+    // showModal again — the show branch is keyed on isOpen, which
+    // isMounted keying would miss (the split brain B's trusted-input QA
+    // found; also covers a forced close landing in the mounting window).
+    function Harness() {
+      const [open, setOpen] = useState(true)
+      return (
+        <OverlayHost>
+          <button type="button" onClick={() => setOpen(true)}>
+            reopen dialog
+          </button>
+          <Dialog open={open} onOpenChange={setOpen} title="Reopen target">
+            <Text>Dialog body</Text>
+          </Dialog>
+        </OverlayHost>
+      )
+    }
+    render(<Harness />)
+    const dialog = document.querySelector(
+      'dialog[data-overlaid-modal]',
+    ) as HTMLDialogElement
+    expect(dialog.open).toBe(true)
+
+    // Browser-forced close (fait accompli), accepted by the kernel.
+    dialog.removeAttribute('open')
+    fireEvent(dialog, new Event('close'))
+    expect(dialog.open).toBe(false)
+    expect(dialog.isConnected).toBe(true)
+
+    // Reopen before the 180 ms exit budget elapses: must re-show.
+    fireEvent.click(screen.getByText('reopen dialog'))
+    advance(20)
+    expect(dialog.open).toBe(true)
+  })
+
   it('Drawer applies edge/layout styling and false backdrop semantics', async () => {
     render(
       <OverlayHost>
@@ -326,6 +363,37 @@ describe('web component-family parity', () => {
     advance(100)
     advance(100)
     expect(screen.queryByText('Tooltip body')).toBeNull()
+  })
+
+  it("a nested dialog's close event never dismisses its ancestor host", () => {
+    render(
+      <OverlayHost>
+        <Drawer open onOpenChange={() => {}} accessibilityLabel="Outer drawer">
+          <Dialog open onOpenChange={() => {}} title="Inner dialog">
+            <span>Inner body</span>
+          </Dialog>
+        </Drawer>
+      </OverlayHost>,
+    )
+    advance(20)
+
+    const dialogs = document.querySelectorAll('dialog[data-overlaid-modal]')
+    expect(dialogs).toHaveLength(2)
+    const inner = dialogs[1] as HTMLDialogElement
+
+    // React re-dispatches the non-delegated close event through fiber
+    // ancestors, so the drawer's onClose also runs for the inner dialog's
+    // close — its target filter must keep the drawer alive while the inner
+    // dialog reconciles the (apparent) browser-forced close normally.
+    inner.removeAttribute('open')
+    act(() => {
+      inner.dispatchEvent(new Event('close'))
+    })
+    advance()
+    expect(screen.queryByText('Inner dialog')).toBeNull()
+    expect(
+      document.querySelector('dialog[data-overlaid-kind="drawer"]'),
+    ).not.toBeNull()
   })
 
   it('unwinds a nested popover before its dialog on consecutive Escape keys', () => {

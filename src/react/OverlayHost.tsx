@@ -7,7 +7,13 @@ import { PortalHost, PortalScope } from './portal'
 
 export const ROOT_HOST_NAME = 'app'
 
-export function OverlayHost({ children }: { children?: ReactNode }) {
+export type OverlayHostProps = {
+  children?: ReactNode
+  /** Web-only (selects the web presentation layer); ignored on native. */
+  styling?: 'default' | 'none' | undefined
+}
+
+export function OverlayHost({ children }: OverlayHostProps) {
   return (
     <LayerHostProvider name={ROOT_HOST_NAME}>
       <PortalScope>
